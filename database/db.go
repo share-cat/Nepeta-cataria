@@ -1,0 +1,42 @@
+package database
+
+import (
+	"fmt"
+	"time"
+
+	nepetacataria "share-cat/Nepeta-cataria"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+)
+
+func NewDBEngine(databaseSetting *nepetacataria.DatabaseSettingType) (*gorm.DB, error) {
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=5432 sslmode=disable",
+		databaseSetting.Host,
+		databaseSetting.UserName,
+		databaseSetting.Password,
+		databaseSetting.DBName,
+	)
+
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		NowFunc: func() time.Time {
+			return time.Now().Truncate(time.Second)
+		},
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	db.Logger = logger.Default.LogMode(logger.Info)
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		return nil, err
+	}
+	sqlDB.SetMaxIdleConns(databaseSetting.MaxIdleConns)
+	sqlDB.SetMaxOpenConns(databaseSetting.MaxOpenConns)
+
+	return db, nil
+}
