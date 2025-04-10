@@ -2,16 +2,15 @@ package database
 
 import (
 	"fmt"
+	"share-cat/Nepeta-cataria/config"
 	"time"
-
-	nepetacataria "share-cat/Nepeta-cataria"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
-func NewDBEngine(databaseSetting *nepetacataria.DatabaseSettingType) (*gorm.DB, error) {
+func NewDBEngine(databaseSetting *config.DatabaseSettingType) (*gorm.DB, error) {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=5432 sslmode=disable",
 		databaseSetting.Host,
 		databaseSetting.UserName,
