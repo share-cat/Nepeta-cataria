@@ -1,0 +1,11 @@
+services:
+    server:
+        build:
+            context: .
+            dockerfile: dockerfile
+
+        restart: always
+
+    database:
+        image: postgres:17.4
+        restart: always
