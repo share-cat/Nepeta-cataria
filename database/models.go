@@ -4,26 +4,26 @@ import (
 	"time"
 
 	"github.com/jackc/pgtype"
+	"gorm.io/gorm"
 )
 
 type Judge struct {
-	ID          int       `gorm:"primaryKey"`
-	Name        string    `gorm:"type:varchar(255);not null"`
-	Description string    `gorm:"type:text"`
-	CreatorID   int       `gorm:"not null"`
-	Tags        []string  `gorm:"type:varchar(255)[];column:tag"`
-	Type        string    `gorm:"type:varchar(255);not null"`
-	IsActive    bool      `gorm:"default:true"`
-	CreatedAt   time.Time `gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP"`
-	UpdatedAt   time.Time `gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP;autoUpdateTime"`
-
+	gorm.Model
+	Name         string        `gorm:"type:varchar(255);not null"`
+	Description  string        `gorm:"type:text"`
+	CreatorID    int           `gorm:"not null"`
+	Tags         []string      `gorm:"type:varchar(255)[];column:tag"`
+	Type         string        `gorm:"type:varchar(255);not null"`
+	IsActive     bool          `gorm:"default:true"`
+	Difficulty   int           `gorm:"default:0"`
 	Creator      User          `gorm:"foreignKey:CreatorID"`
 	Solutions    []Solution    `gorm:"foreignKey:JudgeID"`
 	ChatSessions []ChatSession `gorm:"foreignKey:JudgeID"`
 }
 
 type Permission struct {
-	ID        int  `gorm:"primaryKey"`
+	gorm.Model
+
 	IsAdmin   bool `gorm:"default:false"`
 	IsTeacher bool `gorm:"default:false"`
 	IsStudent bool `gorm:"default:true"`
@@ -32,7 +32,8 @@ type Permission struct {
 }
 
 type School struct {
-	ID         int    `gorm:"primaryKey"`
+	gorm.Model
+
 	SchoolName string `gorm:"type:varchar(255);not null"`
 	Department string `gorm:"type:varchar(255)"`
 
@@ -40,7 +41,8 @@ type School struct {
 }
 
 type Social struct {
-	ID        int    `gorm:"primaryKey"`
+	gorm.Model
+
 	Github    string `gorm:"type:varchar(255)"`
 	Twitter   string `gorm:"type:varchar(255)"`
 	Bluesky   string `gorm:"type:varchar(255)"`
@@ -51,7 +53,8 @@ type Social struct {
 }
 
 type Solution struct {
-	ID            int       `gorm:"primaryKey"`
+	gorm.Model
+
 	UserID        int       `gorm:"not null;index"`
 	JudgeID       int       `gorm:"not null;index"`
 	SubmittedAt   time.Time `gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP"`
@@ -61,8 +64,6 @@ type Solution struct {
 	ExecutionTime int       `gorm:"default:0"`
 	MemoryUsage   int       `gorm:"default:0"`
 	Score         int       `gorm:"default:0"`
-	CreatedAt     time.Time `gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP"`
-	UpdatedAt     time.Time `gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP;autoUpdateTime"`
 
 	User     User        `gorm:"foreignKey:UserID"`
 	Judge    Judge       `gorm:"foreignKey:JudgeID"`
@@ -70,7 +71,8 @@ type Solution struct {
 }
 
 type SupportLang struct {
-	ID             int    `gorm:"primaryKey"`
+	// 支援的語言
+	gorm.Model
 	Name           string `gorm:"type:varchar(255);not null;uniqueIndex"`
 	Version        string `gorm:"type:varchar(255);not null"`
 	CompileCommand string `gorm:"type:text"`
@@ -82,34 +84,36 @@ type SupportLang struct {
 }
 
 type SystemConfig struct {
-	ID          int       `gorm:"primaryKey"`
-	ConfigKey   string    `gorm:"type:varchar(255);not null;uniqueIndex"`
-	ConfigValue string    `gorm:"type:text;not null"`
-	Description string    `gorm:"type:text"`
-	CreatedAt   time.Time `gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP"`
-	UpdatedAt   time.Time `gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP;autoUpdateTime"`
+	gorm.Model
+	ConfigKey   string `gorm:"type:varchar(255);not null;uniqueIndex"`
+	ConfigValue string `gorm:"type:text;not null"`
+	Description string `gorm:"type:text"`
 }
 
 type User struct {
-	ID           int       `gorm:"primaryKey"`
+	// 使用者
+	gorm.Model
 	Username     string    `gorm:"type:varchar(255);not null;uniqueIndex"`
 	Password     string    `gorm:"type:varchar(255);not null"`
 	RegisterTime time.Time `gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP"`
 	Email        string    `gorm:"type:varchar(255);uniqueIndex"`
 	AvatarUrl    string    `gorm:"type:varchar(255)"`
 	PermissionID *int
-	CreatedAt    time.Time `gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP"`
-	UpdatedAt    time.Time `gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP;autoUpdateTime"`
 
-	Permission   *Permission   `gorm:"foreignKey:PermissionID"`
-	UserProfile  *UserProfile  `gorm:"foreignKey:UserID"`
-	Solutions    []Solution    `gorm:"foreignKey:UserID"`
-	Judges       []Judge       `gorm:"foreignKey:CreatorID"`
-	Discussions  []Discussion  `gorm:"foreignKey:AuthorID"`
-	ChatSessions []ChatSession `gorm:"foreignKey:UserID"`
+	Permission    *Permission    `gorm:"foreignKey:PermissionID"`
+	UserProfile   *UserProfile   `gorm:"foreignKey:UserID"`
+	Solutions     []Solution     `gorm:"foreignKey:UserID"`
+	Judges        []Judge        `gorm:"foreignKey:CreatorID"`
+	Discussions   []Discussion   `gorm:"foreignKey:AuthorID"`
+	ChatSessions  []ChatSession  `gorm:"foreignKey:UserID"`
+	Achievements  []Achievement  `gorm:"many2many:user_achievements"`
+	SubmitEffects []SubmitEffect `gorm:"many2many:user_submit_effects"`
+	RpgProfile    *RpgProfile    `gorm:"foreignKey:UserID"`
 }
 
 type UserProfile struct {
+	// 使用者個人資料
+	gorm.Model
 	UserID    int    `gorm:"primaryKey"`
 	SchoolID  int    `gorm:"not null"`
 	SocialID  int    `gorm:"not null"`
@@ -121,30 +125,56 @@ type UserProfile struct {
 }
 
 type ChatSession struct {
-	ID          int          `gorm:"primaryKey"`
+	// Ai 聊天紀錄
+	gorm.Model
 	UserID      int          `gorm:"not null;index"`
 	JudgeID     int          `gorm:"not null;index"`
 	Title       string       `gorm:"type:varchar(255);not null"`
 	ChatHistory pgtype.JSONB `gorm:"type:jsonb"`
-	CreatedAt   time.Time    `gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP"`
-	UpdatedAt   time.Time    `gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP;autoUpdateTime"`
 
 	User  User  `gorm:"foreignKey:UserID"`
 	Judge Judge `gorm:"foreignKey:JudgeID"`
 }
 
 type Discussion struct {
-	ID         int       `gorm:"primaryKey"`
-	Title      string    `gorm:"type:varchar(255);not null"`
-	Content    string    `gorm:"type:text;not null"`
-	Type       string    `gorm:"type:varchar(255);not null"`
-	Tags       []string  `gorm:"type:varchar(255)[]"`
-	ParentID   int       `gorm:"column:pid"`                     // Parent ID
-	ParentType string    `gorm:"type:varchar(255);column:ptype"` // Parent Type
-	Views      int       `gorm:"default:0"`
-	AuthorID   int       `gorm:"not null;index"`
-	CreatedAt  time.Time `gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP"`
-	UpdatedAt  time.Time `gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP;autoUpdateTime"`
+	// 討論區
+	gorm.Model
+	Title      string   `gorm:"type:varchar(255);not null"`
+	Content    string   `gorm:"type:text;not null"`
+	Type       string   `gorm:"type:varchar(255);not null"`
+	Tags       []string `gorm:"type:varchar(255)[]"`
+	ParentID   int      `gorm:"column:pid"`                     // Parent ID
+	ParentType string   `gorm:"type:varchar(255);column:ptype"` // Parent Type
+	Views      int      `gorm:"default:0"`
+	AuthorID   int      `gorm:"not null;index"`
 
 	Author User `gorm:"foreignKey:AuthorID"`
+}
+
+type Achievement struct {
+	// 成就 - 徽章
+	gorm.Model
+	Name        string `gorm:"type:varchar(255);not null"`
+	Description string `gorm:"type:text"`
+	Rarelevel   int    `gorm:"default:0"`
+	Icon        string `gorm:"type:varchar(255);not null"`
+}
+
+type SubmitEffect struct {
+	// 提交特效
+	gorm.Model
+	Name              string `gorm:"type:varchar(255);not null"`
+	Description       string `gorm:"type:text"`
+	Rarelevel         int    `gorm:"default:0"`
+	Icon              string `gorm:"type:varchar(255);not null"`
+	EffectId          string `gorm:"type:varchar(255);not null"`
+	UserSubmitEffects []User `gorm:"many2many:user_submit_effects"`
+}
+
+type RpgProfile struct {
+	// RPG user profile
+	gorm.Model
+	UserID int `gorm:"primaryKey"`
+	Exp    int `gorm:"default:0"`
+	Level  int `gorm:"default:0"`
 }
