@@ -1,0 +1,20 @@
+services:
+    app:
+        image: mcr.microsoft.com/devcontainers/go:1-1.23-bookworm
+        volumes:
+            - ..:/workspaces/${localWorkspaceFolderBasename}:cached
+        network_mode: service:db
+        command: sleep infinity
+
+    db:
+        image: postgres:17-bookworm
+        restart: unless-stopped
+        volumes:
+            - postgres-data:/var/lib/postgresql/data
+        environment:
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_USER: postgres
+            POSTGRES_DB: nepcatdb
+
+volumes:
+    postgres-data:

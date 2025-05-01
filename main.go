@@ -1,4 +1,4 @@
-package nepetacataria
+package main
 
 import (
 	"log"
