@@ -2,8 +2,9 @@ package main
 
 import (
 	"log"
-	"share-cat/Nepeta-cataria/database"
 	"share-cat/Nepeta-cataria/global"
+	"share-cat/Nepeta-cataria/models"
+	"share-cat/Nepeta-cataria/routes"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -15,6 +16,7 @@ func main() {
 	corsConfig.AllowAllOrigins = true
 	server.Use(gin.Logger())
 	server.Use(cors.New(corsConfig))
+	routes.SetupRouter(server, global.DB)
 
 	server.Run()
 
@@ -22,16 +24,16 @@ func main() {
 
 func dbInit() {
 	err := global.DB.AutoMigrate(
-		&database.Judge{},
-		&database.Permission{},
-		&database.School{},
-		&database.Social{},
-		&database.Solution{},
-		&database.SupportLang{},
-		&database.SystemConfig{},
-		&database.User{},
-		&database.UserProfile{},
-		&database.ChatSession{},
+		&models.Judge{},
+		&models.Permission{},
+		&models.School{},
+		&models.Social{},
+		&models.Solution{},
+		&models.SupportLang{},
+		&models.SystemConfig{},
+		&models.User{},
+		&models.UserProfile{},
+		&models.ChatSession{},
 	)
 	if err != nil {
 		log.Fatal(err)
