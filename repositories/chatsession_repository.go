@@ -27,10 +27,10 @@ func (r *ChatSessionRepository) GetByID(id uint) (models.ChatSession, error) {
 	return chatSessions, result.Error
 }
 
-func (r *ChatSessionRepository) GetByUserID(userID uint) (models.ChatSession, error) {
-	var chatSessions models.ChatSession
+func (r *ChatSessionRepository) GetByUserID(userID uint) ([]models.ChatSession, error) {
+	var chatSessions []models.ChatSession
 	result := r.db.Where("user_id = ?", userID).
-		First(&chatSessions)
+		Find(&chatSessions)
 	return chatSessions, result.Error
 }
 
@@ -52,4 +52,16 @@ func (r *ChatSessionRepository) Update(chatSession models.ChatSession) error {
 
 func (r *ChatSessionRepository) Delete(id uint) error {
 	return r.db.Delete(&models.ChatSession{}, id).Error
+}
+
+func (r *ChatSessionRepository) UpdateChatHistory(id uint, history interface{}) error {
+	return r.db.Model(&models.ChatSession{}).
+		Where("id = ?", id).
+		Update("chat_history", history).Error
+}
+
+func (r *ChatSessionRepository) UpdateTitle(id uint, title string) error {
+	return r.db.Model(&models.ChatSession{}).
+		Where("id = ?", id).
+		Update("title", title).Error
 }

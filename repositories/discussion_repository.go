@@ -34,6 +34,37 @@ func (r *DiscussionRepository) GetByUserID(userID uint) ([]models.Discussion, er
 	return discussions, result.Error
 }
 
+func (r *DiscussionRepository) GetByParent(parentID int, parentType string) ([]models.Discussion, error) {
+	var discussions []models.Discussion
+	result := r.db.Where("pid = ? AND ptype = ?", parentID, parentType).
+		Preload("Author").
+		Find(&discussions)
+	return discussions, result.Error
+}
+
+func (r *DiscussionRepository) GetMostViewed(limit int) ([]models.Discussion, error) {
+	var discussions []models.Discussion
+	result := r.db.Order("views DESC").
+		Limit(limit).
+		Preload("Author").
+		Find(&discussions)
+	return discussions, result.Error
+}
+
+func (r *DiscussionRepository) Search(keyword string) ([]models.Discussion, error) {
+	var discussions []models.Discussion
+	result := r.db.Where("title LIKE ? OR content LIKE ?", "%"+keyword+"%", "%"+keyword+"%").
+		Preload("Author").
+		Find(&discussions)
+	return discussions, result.Error
+}
+
+func (r *DiscussionRepository) IncrementViews(id uint) error {
+	return r.db.Model(&models.Discussion{}).
+		Where("id = ?", id).
+		UpdateColumn("views", gorm.Expr("views + ?", 1)).Error
+}
+
 func (r *DiscussionRepository) Create(discussion models.Discussion) (models.Discussion, error) {
 	result := r.db.Create(&discussion)
 	return discussion, result.Error

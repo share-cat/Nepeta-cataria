@@ -25,9 +25,9 @@ func (r *SchoolRepository) GetByID(id uint) (models.School, error) {
 	return school, result.Error
 }
 
-func (r *SchoolRepository) GetByName(name string) (models.School, error) {
+func (r *SchoolRepository) SearchByName(name string) (models.School, error) {
 	var school models.School
-	result := r.db.Where("school_name = ?", name).First(&school)
+	result := r.db.Where("school_name like ?", name+"%").First(&school)
 	return school, result.Error
 }
 
