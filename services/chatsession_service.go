@@ -113,6 +113,24 @@ func (s *ChatSessionService) UpdateChatHistory(id uint, history interface{}) err
 	return s.repo.UpdateChatHistory(id, history)
 }
 
+func (s *ChatSessionService) GetUserJudgeChatSessions(userID, judgeID uint) ([]models.ChatSession, error) {
+	if userID == 0 || judgeID == 0 {
+		return nil, errors.New("invalid user ID or judge ID")
+	}
+
+	_, err := s.userRepo.GetByID(userID)
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+
+	_, err = s.judgeRepo.GetByID(judgeID)
+	if err != nil {
+		return nil, errors.New("judge not found")
+	}
+
+	return s.repo.GetByUserAndJudge(userID, judgeID)
+}
+
 func (s *ChatSessionService) UpdateTitle(id uint, title string) error {
 	if title == "" {
 		return errors.New("title cannot be empty")

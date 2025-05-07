@@ -41,6 +41,15 @@ func (r *ChatSessionRepository) GetByJudgeID(judgeID uint) ([]models.ChatSession
 	return chatSessions, result.Error
 }
 
+func (r *ChatSessionRepository) GetByUserAndJudge(userID, judgeID uint) ([]models.ChatSession, error) {
+	var chatSessions []models.ChatSession
+	result := r.db.Where("user_id = ? AND judge_id = ?", userID, judgeID).
+		Preload("User").
+		Preload("Judge").
+		Find(&chatSessions)
+	return chatSessions, result.Error
+}
+
 func (r *ChatSessionRepository) Create(chatSession models.ChatSession) (models.ChatSession, error) {
 	result := r.db.Create(&chatSession)
 	return chatSession, result.Error

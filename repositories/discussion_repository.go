@@ -51,6 +51,44 @@ func (r *DiscussionRepository) GetMostViewed(limit int) ([]models.Discussion, er
 	return discussions, result.Error
 }
 
+func (r *DiscussionRepository) GetByTags(tags []string) ([]models.Discussion, error) {
+	var discussions []models.Discussion
+
+	query := r.db
+	for _, tag := range tags {
+		query = query.Or("? = ANY(tags)", tag)
+	}
+
+	result := query.Preload("Author").Find(&discussions)
+	return discussions, result.Error
+}
+
+func (r *DiscussionRepository) GetWithFilters(discussionType string, tags []string, keyword string, limit int) ([]models.Discussion, error) {
+	query := r.db.Model(&models.Discussion{})
+
+	if discussionType != "" {
+		query = query.Where("type = ?", discussionType)
+	}
+
+	if len(tags) > 0 {
+		for _, tag := range tags {
+			query = query.Where("? = ANY(tags)", tag)
+		}
+	}
+
+	if keyword != "" {
+		query = query.Where("title LIKE ? OR content LIKE ?", "%"+keyword+"%", "%"+keyword+"%")
+	}
+
+	if limit > 0 {
+		query = query.Order("views DESC").Limit(limit)
+	}
+
+	var discussions []models.Discussion
+	result := query.Preload("Author").Find(&discussions)
+	return discussions, result.Error
+}
+
 func (r *DiscussionRepository) Search(keyword string) ([]models.Discussion, error) {
 	var discussions []models.Discussion
 	result := r.db.Where("title LIKE ? OR content LIKE ?", "%"+keyword+"%", "%"+keyword+"%").

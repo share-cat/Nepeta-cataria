@@ -116,3 +116,23 @@ func (s *DiscussionService) SearchDiscussions(keyword string) ([]models.Discussi
 
 	return s.repo.Search(keyword)
 }
+
+func (s *DiscussionService) GetDiscussionsByTags(tags []string) ([]models.Discussion, error) {
+	if len(tags) == 0 {
+		return nil, errors.New("at least one tag is required")
+	}
+
+	return s.repo.GetByTags(tags)
+}
+
+func (s *DiscussionService) GetMostViewedDiscussions(limit int) ([]models.Discussion, error) {
+	if limit <= 0 {
+		limit = 10
+	}
+
+	return s.repo.GetMostViewed(limit)
+}
+
+func (s *DiscussionService) GetDiscussionsWithFilters(discussionType string, tags []string, keyword string, limit int) ([]models.Discussion, error) {
+	return s.repo.GetWithFilters(discussionType, tags, keyword, limit)
+}
