@@ -7,10 +7,10 @@ import (
 )
 
 type SocialService struct {
-	repo *repositories.SociaRepository
+	repo *repositories.SocialRepository
 }
 
-func NewSocialService(repo *repositories.SociaRepository) *SocialService {
+func NewSocialService(repo *repositories.SocialRepository) *SocialService {
 	return &SocialService{
 		repo: repo,
 	}

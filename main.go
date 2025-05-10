@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"share-cat/Nepeta-cataria/boot"
 	"share-cat/Nepeta-cataria/global"
 	"share-cat/Nepeta-cataria/models"
 	"share-cat/Nepeta-cataria/routes"
@@ -16,7 +17,9 @@ func main() {
 	corsConfig.AllowAllOrigins = true
 	server.Use(gin.Logger())
 	server.Use(cors.New(corsConfig))
-	routes.SetupRouter(server, global.DB)
+
+	app := boot.NewApplication(global.DB)
+	routes.SetupRouter(server, global.DB, app.Controllers)
 
 	server.Run()
 

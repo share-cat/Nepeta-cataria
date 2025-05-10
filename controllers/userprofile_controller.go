@@ -9,12 +9,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type userProfileController struct {
+type UserProfileController struct {
 	userProfileService *services.UserProfileService
 }
 
-func NewUserProfileController(userProfileService *services.UserProfileService) *userProfileController {
-	return &userProfileController{
+func NewUserProfileController(userProfileService *services.UserProfileService) *UserProfileController {
+	return &UserProfileController{
 		userProfileService: userProfileService,
 	}
 }
@@ -28,7 +28,7 @@ func NewUserProfileController(userProfileService *services.UserProfileService) *
 // @Success 200 {array} models.UserProfile
 // @Failure 500 {object} map[string]string
 // @Router /userProfiles [get]
-func (c *userProfileController) GetAllUserProfiles(ctx *gin.Context) {
+func (c *UserProfileController) GetAllUserProfiles(ctx *gin.Context) {
 	profiles, err := c.userProfileService.GetAllUserProfiles()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -50,7 +50,7 @@ func (c *userProfileController) GetAllUserProfiles(ctx *gin.Context) {
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /userProfiles/{id} [get]
-func (c *userProfileController) GetUserProfileByID(ctx *gin.Context) {
+func (c *UserProfileController) GetUserProfileByID(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -81,7 +81,7 @@ func (c *userProfileController) GetUserProfileByID(ctx *gin.Context) {
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /userProfiles/user/{userID} [get]
-func (c *userProfileController) GetUserProfileByUserID(ctx *gin.Context) {
+func (c *UserProfileController) GetUserProfileByUserID(ctx *gin.Context) {
 	userID, err := strconv.ParseUint(ctx.Param("userID"), 10, 32)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -112,7 +112,7 @@ func (c *userProfileController) GetUserProfileByUserID(ctx *gin.Context) {
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /userProfiles [post]
-func (c *userProfileController) CreateUserProfile(ctx *gin.Context) {
+func (c *UserProfileController) CreateUserProfile(ctx *gin.Context) {
 	var userProfile models.UserProfile
 
 	if err := ctx.ShouldBindJSON(&userProfile); err != nil {
@@ -146,7 +146,7 @@ func (c *userProfileController) CreateUserProfile(ctx *gin.Context) {
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /userProfiles/{id} [put]
-func (c *userProfileController) UpdateUserProfile(ctx *gin.Context) {
+func (c *UserProfileController) UpdateUserProfile(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -187,7 +187,7 @@ func (c *userProfileController) UpdateUserProfile(ctx *gin.Context) {
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /userProfiles/{id} [delete]
-func (c *userProfileController) DeleteUserProfile(ctx *gin.Context) {
+func (c *UserProfileController) DeleteUserProfile(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -220,7 +220,7 @@ func (c *userProfileController) DeleteUserProfile(ctx *gin.Context) {
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /userProfiles/{userID}/avatar [put]
-func (c *userProfileController) UpdateAvatarURL(ctx *gin.Context) {
+func (c *UserProfileController) UpdateAvatarURL(ctx *gin.Context) {
 	userID, err := strconv.ParseUint(ctx.Param("userID"), 10, 32)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
