@@ -7,12 +7,14 @@ import (
 )
 
 type UserProfileService struct {
-	repo *repositories.UserProfileRepository
+	repo     *repositories.UserProfileRepository
+	userRepo *repositories.UserRepository
 }
 
-func NewUserProfileService(repo *repositories.UserProfileRepository) *UserProfileService {
+func NewUserProfileService(repo *repositories.UserProfileRepository, userRepo *repositories.UserRepository) *UserProfileService {
 	return &UserProfileService{
-		repo: repo,
+		repo:     repo,
+		userRepo: userRepo,
 	}
 }
 
@@ -31,6 +33,11 @@ func (s *UserProfileService) GetUserProfileByUserID(userID uint) (models.UserPro
 	if userID == 0 {
 		return models.UserProfile{}, errors.New("invalid user ID")
 	}
+	_, err := s.userRepo.GetByID(userID)
+	if err != nil {
+		return models.UserProfile{}, errors.New("user not found")
+	}
+
 	return s.repo.GetByUserID(userID)
 }
 
