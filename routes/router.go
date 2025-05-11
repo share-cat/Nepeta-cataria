@@ -1,4 +1,3 @@
-// routes/router.go
 package routes
 
 import (
@@ -12,8 +11,15 @@ func SetupRouter(g *gin.Engine, db *gorm.DB, controllers boot.Controllers) {
 
 	api := g.Group("/api")
 
-	SetupUserRoutes(api, controllers.UserController, controllers.JudgeController, controllers.SolutionController)
+	SetupAchievementRoutes(api, controllers.AchievementController)
+	SetupChatSessionRoutes(api, controllers.ChatSessionController)
+	SetupDiscussionRoutes(api, controllers.DiscussionController)
 	SetupJudgeRoutes(api, controllers.JudgeController, controllers.SolutionController)
+	SetupSchoolRoutes(api, controllers.SchoolController)
+	SetupSocialRoutes(api, controllers.SocialController)
 	SetupSolutionRoutes(api, controllers.SolutionController)
+	SetupSubmitEffectRoutes(api, controllers.SubmitEffectController)
+	SetupUserProfileRoutes(api, controllers.UserProfileController)
+	SetupUserRoutes(api, controllers.UserController, controllers.JudgeController, controllers.SolutionController)
 
 }

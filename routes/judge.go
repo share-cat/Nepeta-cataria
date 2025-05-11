@@ -1,4 +1,3 @@
-// routes/judge.go
 package routes
 
 import (

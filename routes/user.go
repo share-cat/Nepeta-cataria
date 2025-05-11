@@ -1,4 +1,3 @@
-// routes/user.go
 package routes
 
 import (

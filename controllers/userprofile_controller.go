@@ -213,15 +213,15 @@ func (c *UserProfileController) DeleteUserProfile(ctx *gin.Context) {
 // @Tags userProfiles
 // @Accept json
 // @Produce json
-// @Param userID path string true "User ID"
+// @Param user_id path string true "User ID"
 // @Param avatarURL body string true "Avatar URL"
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
-// @Router /userProfiles/{userID}/avatar [put]
+// @Router /userProfiles/{user_id}/avatar [put]
 func (c *UserProfileController) UpdateAvatarURL(ctx *gin.Context) {
-	userID, err := strconv.ParseUint(ctx.Param("userID"), 10, 32)
+	userID, err := strconv.ParseUint(ctx.Param("user_id"), 10, 32)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": "無效的用戶ID",

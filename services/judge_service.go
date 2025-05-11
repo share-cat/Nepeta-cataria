@@ -1,4 +1,3 @@
-// services/judge_service.go
 package services
 
 import (
