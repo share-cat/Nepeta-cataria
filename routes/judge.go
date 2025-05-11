@@ -23,7 +23,7 @@ func SetupJudgeRoutes(router *gin.RouterGroup, judgeController *controllers.Judg
 		judges.GET("/difficulty/:difficulty", judgeController.GetJudgesByDifficulty)
 
 		// 獲取特定題目的所有答案
-		judges.GET("/:judge_id/solutions", solutionController.GetJudgeSolutions)
+		judges.GET("/:id/solutions", solutionController.GetJudgeSolutions)
 	}
 
 }

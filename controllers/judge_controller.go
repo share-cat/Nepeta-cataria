@@ -200,12 +200,12 @@ func (c *JudgeController) DeleteJudge(ctx *gin.Context) {
 // @Tags judges
 // @Accept json
 // @Produce json
-// @Param creator_id path string true "Creator ID"
+// @Param id path string true "Creator ID"
 // @Success 200 {array} models.Judge
 // @Failure 400,404 {object} map[string]string
-// @Router /users/{creator_id}/judges [get]
+// @Router /users/{id}/judges [get]
 func (c *JudgeController) GetJudgesByCreator(ctx *gin.Context) {
-	creatorID, err := strconv.ParseUint(ctx.Param("creator_id"), 10, 32)
+	creatorID, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": "無效的用戶ID",

@@ -14,7 +14,7 @@ func SetupUserProfileRoutes(router *gin.RouterGroup, controller *controllers.Use
 		userProfiles.GET("/user/:id", controller.GetUserProfileByUserID)
 		userProfiles.POST("", controller.CreateUserProfile)
 		userProfiles.PUT("/:id", controller.UpdateUserProfile)
-		userProfiles.PUT("/:user_id/avatar", controller.UpdateAvatarURL)
+		userProfiles.PUT("/:id/avatar", controller.UpdateAvatarURL)
 		userProfiles.DELETE("/:id", controller.DeleteUserProfile)
 	}
 }

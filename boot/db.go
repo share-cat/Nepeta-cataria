@@ -11,11 +11,12 @@ import (
 )
 
 func NewDBEngine(databaseSetting *config.DatabaseSettingType) (*gorm.DB, error) {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=5432 sslmode=disable",
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 		databaseSetting.Host,
 		databaseSetting.UserName,
 		databaseSetting.Password,
 		databaseSetting.DBName,
+		databaseSetting.DBPORT,
 	)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{

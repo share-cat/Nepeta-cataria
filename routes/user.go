@@ -19,9 +19,9 @@ func SetupUserRoutes(router *gin.RouterGroup, userController *controllers.UserCo
 		users.GET("/:id/profile", userController.GetUserProfile)
 
 		// 獲取特定用戶創建的題目
-		users.GET("/:creator_id/judges", judgeController.GetJudgesByCreator)
+		users.GET("/:id/judges", judgeController.GetJudgesByCreator)
 
 		// 獲取特定用戶的答案
-		users.GET("/:user_id/solutions", solutionController.GetUserSolutions)
+		users.GET("/:id/solutions", solutionController.GetUserSolutions)
 	}
 }

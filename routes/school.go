@@ -11,7 +11,7 @@ func SetupSchoolRoutes(router *gin.RouterGroup, controller *controllers.SchoolCo
 	{
 		schools.GET("", controller.GetSchools)
 		schools.GET("/:id", controller.GetSchool)
-		schools.GET("/:name", controller.GetSchoolByName)
+		schools.GET("/name", controller.GetSchoolByName)
 		schools.POST("", controller.CreateSchool)
 		schools.PUT("/:id", controller.UpdateSchool)
 		schools.DELETE("/:id", controller.DeleteSchool)

@@ -8,6 +8,7 @@ type DatabaseSettingType struct {
 	Password     string
 	Host         string
 	DBName       string
+	DBPORT       string
 	Charset      string
 	ParseTime    bool
 	MaxIdleConns int
@@ -26,6 +27,7 @@ func GetDbSetting() *DatabaseSettingType {
 		Password:     os.Getenv("DB_PASSWORD"),
 		Host:         os.Getenv("DB_HOST"),
 		DBName:       os.Getenv("DB_NAME"),
+		DBPORT:       os.Getenv("DB_PORT"),
 		Charset:      "utf8",
 		ParseTime:    true,
 		MaxIdleConns: 10,

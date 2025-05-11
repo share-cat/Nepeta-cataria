@@ -215,12 +215,12 @@ func (c *SolutionController) DeleteSolution(ctx *gin.Context) {
 // @Tags solutions
 // @Accept json
 // @Produce json
-// @Param user_id path string true "User ID"
+// @Param id path string true "User ID"
 // @Success 200 {array} models.Solution
 // @Failure 400,404 {object} map[string]string
-// @Router /users/{user_id}/solutions [get]
+// @Router /users/{id}/solutions [get]
 func (c *SolutionController) GetUserSolutions(ctx *gin.Context) {
-	userID, err := strconv.ParseUint(ctx.Param("user_id"), 10, 32)
+	userID, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": "無效的用戶ID",
@@ -245,12 +245,12 @@ func (c *SolutionController) GetUserSolutions(ctx *gin.Context) {
 // @Tags solutions
 // @Accept json
 // @Produce json
-// @Param judge_id path string true "Judge ID"
+// @Param id path string true "Judge ID"
 // @Success 200 {array} models.Solution
 // @Failure 400,404 {object} map[string]string
-// @Router /judges/{judge_id}/solutions [get]
+// @Router /judges/{id}/solutions [get]
 func (c *SolutionController) GetJudgeSolutions(ctx *gin.Context) {
-	judgeID, err := strconv.ParseUint(ctx.Param("judge_id"), 10, 32)
+	judgeID, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": "無效的題目ID",
