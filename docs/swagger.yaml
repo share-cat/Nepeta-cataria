@@ -1,0 +1,2614 @@
+definitions:
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+  models.Achievement:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      description:
+        type: string
+      icon:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      rarelevel:
+        type: integer
+      updatedAt:
+        type: string
+    type: object
+  models.ChatSession:
+    properties:
+      chatHistory:
+        $ref: '#/definitions/pgtype.JSONB'
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
+      judge:
+        $ref: '#/definitions/models.Judge'
+      judgeID:
+        type: integer
+      title:
+        type: string
+      updatedAt:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+      userID:
+        type: integer
+    type: object
+  models.Discussion:
+    properties:
+      author:
+        $ref: '#/definitions/models.User'
+      authorID:
+        type: integer
+      content:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
+      parentID:
+        description: Parent ID
+        type: integer
+      parentType:
+        description: Parent Type
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      type:
+        type: string
+      updatedAt:
+        type: string
+      views:
+        type: integer
+    type: object
+  models.Judge:
+    properties:
+      chatSessions:
+        items:
+          $ref: '#/definitions/models.ChatSession'
+        type: array
+      createdAt:
+        type: string
+      creator:
+        $ref: '#/definitions/models.User'
+      creatorID:
+        type: integer
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      description:
+        type: string
+      difficulty:
+        type: integer
+      id:
+        type: integer
+      isActive:
+        type: boolean
+      name:
+        type: string
+      solutions:
+        items:
+          $ref: '#/definitions/models.Solution'
+        type: array
+      tags:
+        items:
+          type: string
+        type: array
+      type:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  models.Permission:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
+      isAdmin:
+        type: boolean
+      isStudent:
+        type: boolean
+      isTeacher:
+        type: boolean
+      updatedAt:
+        type: string
+      users:
+        items:
+          $ref: '#/definitions/models.User'
+        type: array
+    type: object
+  models.RpgProfile:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      exp:
+        type: integer
+      id:
+        type: integer
+      level:
+        type: integer
+      updatedAt:
+        type: string
+      userID:
+        type: integer
+    type: object
+  models.School:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      department:
+        type: string
+      id:
+        type: integer
+      schoolName:
+        type: string
+      updatedAt:
+        type: string
+      userProfiles:
+        items:
+          $ref: '#/definitions/models.UserProfile'
+        type: array
+    type: object
+  models.Social:
+    properties:
+      bluesky:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      github:
+        type: string
+      id:
+        type: integer
+      instagram:
+        type: string
+      twitter:
+        type: string
+      updatedAt:
+        type: string
+      userProfile:
+        $ref: '#/definitions/models.UserProfile'
+      web:
+        type: string
+    type: object
+  models.Solution:
+    properties:
+      code:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      executionTime:
+        type: integer
+      id:
+        type: integer
+      judge:
+        $ref: '#/definitions/models.Judge'
+      judgeID:
+        type: integer
+      language:
+        $ref: '#/definitions/models.SupportLang'
+      languageID:
+        type: integer
+      memoryUsage:
+        type: integer
+      score:
+        type: integer
+      status:
+        type: string
+      submittedAt:
+        type: string
+      updatedAt:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+      userID:
+        type: integer
+    type: object
+  models.SubmitEffect:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      description:
+        type: string
+      effectId:
+        type: string
+      icon:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      rarelevel:
+        type: integer
+      updatedAt:
+        type: string
+      userSubmitEffects:
+        items:
+          $ref: '#/definitions/models.User'
+        type: array
+    type: object
+  models.SupportLang:
+    properties:
+      compileCommand:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      fileExtension:
+        type: string
+      id:
+        type: integer
+      isActive:
+        type: boolean
+      name:
+        type: string
+      runCommand:
+        type: string
+      solutions:
+        items:
+          $ref: '#/definitions/models.Solution'
+        type: array
+      updatedAt:
+        type: string
+      version:
+        type: string
+    type: object
+  models.User:
+    properties:
+      achievements:
+        items:
+          $ref: '#/definitions/models.Achievement'
+        type: array
+      avatarUrl:
+        type: string
+      chatSessions:
+        items:
+          $ref: '#/definitions/models.ChatSession'
+        type: array
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      discussions:
+        items:
+          $ref: '#/definitions/models.Discussion'
+        type: array
+      email:
+        type: string
+      id:
+        type: integer
+      judges:
+        items:
+          $ref: '#/definitions/models.Judge'
+        type: array
+      password:
+        type: string
+      permission:
+        $ref: '#/definitions/models.Permission'
+      permissionID:
+        type: integer
+      registerTime:
+        type: string
+      rpgProfile:
+        $ref: '#/definitions/models.RpgProfile'
+      solutions:
+        items:
+          $ref: '#/definitions/models.Solution'
+        type: array
+      submitEffects:
+        items:
+          $ref: '#/definitions/models.SubmitEffect'
+        type: array
+      updatedAt:
+        type: string
+      userProfile:
+        $ref: '#/definitions/models.UserProfile'
+      username:
+        type: string
+    type: object
+  models.UserProfile:
+    properties:
+      avatarURL:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
+      school:
+        $ref: '#/definitions/models.School'
+      schoolID:
+        type: integer
+      social:
+        $ref: '#/definitions/models.Social'
+      socialID:
+        type: integer
+      updatedAt:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+      userID:
+        type: integer
+    type: object
+  pgtype.JSONB:
+    properties:
+      bytes:
+        items:
+          type: integer
+        type: array
+      status:
+        $ref: '#/definitions/pgtype.Status'
+    type: object
+  pgtype.Status:
+    enum:
+    - 0
+    - 1
+    - 2
+    type: integer
+    x-enum-varnames:
+    - Undefined
+    - "Null"
+    - Present
+info:
+  contact: {}
+paths:
+  /achievements:
+    get:
+      consumes:
+      - application/json
+      description: 獲取所有成就的列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Achievement'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取所有成就
+      tags:
+      - achievements
+    post:
+      consumes:
+      - application/json
+      description: 創建新的成就
+      parameters:
+      - description: Achievement
+        in: body
+        name: achievement
+        required: true
+        schema:
+          $ref: '#/definitions/models.Achievement'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Achievement'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 創建新成就
+      tags:
+      - achievements
+    put:
+      consumes:
+      - application/json
+      description: 更新指定ID的成就
+      parameters:
+      - description: Achievement
+        in: body
+        name: achievement
+        required: true
+        schema:
+          $ref: '#/definitions/models.Achievement'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Achievement'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 更新成就
+      tags:
+      - achievements
+  /achievements/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 根據ID刪除成就
+      parameters:
+      - description: Achievement ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 刪除成就
+      tags:
+      - achievements
+    get:
+      consumes:
+      - application/json
+      description: 根據ID獲取特定成就
+      parameters:
+      - description: Achievement ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Achievement'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取特定成就
+      tags:
+      - achievements
+  /chat-sessions:
+    post:
+      consumes:
+      - application/json
+      description: 創建新的聊天會話
+      parameters:
+      - description: Chat Session
+        in: body
+        name: chat_session
+        required: true
+        schema:
+          $ref: '#/definitions/models.ChatSession'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.ChatSession'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 創建新聊天會話
+      tags:
+      - chat_sessions
+  /chat-sessions/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 根據ID刪除聊天會話
+      parameters:
+      - description: Chat Session ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 刪除聊天會話
+      tags:
+      - chat_sessions
+    get:
+      consumes:
+      - application/json
+      description: 根據ID獲取特定聊天會話
+      parameters:
+      - description: Chat Session ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ChatSession'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取特定聊天會話
+      tags:
+      - chat_sessions
+    put:
+      consumes:
+      - application/json
+      description: 更新聊天會話的詳細信息
+      parameters:
+      - description: Chat Session ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Chat Session
+        in: body
+        name: chat_session
+        required: true
+        schema:
+          $ref: '#/definitions/models.ChatSession'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ChatSession'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 更新聊天會話
+      tags:
+      - chat_sessions
+  /chat-sessions/{id}/history:
+    put:
+      consumes:
+      - application/json
+      description: 更新聊天會話的歷史記錄
+      parameters:
+      - description: Chat Session ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Chat History
+        in: body
+        name: chat_history
+        required: true
+        schema: {}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 更新聊天歷史
+      tags:
+      - chat_sessions
+  /chat-sessions/{id}/title:
+    put:
+      consumes:
+      - application/json
+      description: 更新聊天會話的標題
+      parameters:
+      - description: Chat Session ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Title
+        in: body
+        name: title
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 更新標題
+      tags:
+      - chat_sessions
+  /chat-sessions/judge/{judge_id}:
+    get:
+      consumes:
+      - application/json
+      description: 獲取特定評審的所有聊天會話
+      parameters:
+      - description: Judge ID
+        in: path
+        name: judge_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ChatSession'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取特定評審的所有聊天會話
+      tags:
+      - chat_sessions
+  /chat-sessions/user/{user_id}:
+    get:
+      consumes:
+      - application/json
+      description: 獲取特定用戶的所有聊天會話
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ChatSession'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取特定用戶的所有聊天會話
+      tags:
+      - chat_sessions
+  /chat-sessions/user/{user_id}/judge/{judge_id}:
+    get:
+      consumes:
+      - application/json
+      description: 獲取特定用戶和特定評審的聊天會話
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      - description: Judge ID
+        in: path
+        name: judge_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ChatSession'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取特定用戶和特定評審的聊天會話
+      tags:
+      - chat_sessions
+  /chat_sessions:
+    get:
+      consumes:
+      - application/json
+      description: 獲取所有聊天會話的列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ChatSession'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取所有聊天會話
+      tags:
+      - chat_sessions
+  /discussions:
+    get:
+      consumes:
+      - application/json
+      description: 獲取所有討論的列表
+      parameters:
+      - description: 討論類型
+        in: query
+        name: type
+        type: string
+      - description: 標籤
+        in: query
+        name: tags
+        type: string
+      - description: 關鍵字
+        in: query
+        name: keyword
+        type: string
+      - description: 是否按瀏覽量排序
+        in: query
+        name: most_viewed
+        type: string
+      - description: 限制數量
+        in: query
+        name: limit
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Discussion'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取所有討論
+      tags:
+      - discussions
+    post:
+      consumes:
+      - application/json
+      description: 創建新的討論
+      parameters:
+      - description: Discussion
+        in: body
+        name: discussion
+        required: true
+        schema:
+          $ref: '#/definitions/models.Discussion'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Discussion'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 創建新討論
+      tags:
+      - discussions
+  /discussions/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 根據ID刪除討論
+      parameters:
+      - description: Discussion ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 刪除討論
+      tags:
+      - discussions
+    get:
+      consumes:
+      - application/json
+      description: 根據ID獲取特定討論
+      parameters:
+      - description: Discussion ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Discussion'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取特定討論
+      tags:
+      - discussions
+    put:
+      consumes:
+      - application/json
+      description: 更新指定ID的討論
+      parameters:
+      - description: Discussion ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Discussion
+        in: body
+        name: discussion
+        required: true
+        schema:
+          $ref: '#/definitions/models.Discussion'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Discussion'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 更新討論
+      tags:
+      - discussions
+  /discussions/parent/{parent_type}/{parent_id}:
+    get:
+      consumes:
+      - application/json
+      description: 根據父討論 ID 獲取子討論
+      parameters:
+      - description: Parent Discussion ID
+        in: path
+        name: parent_id
+        required: true
+        type: integer
+      - description: Parent Type
+        in: path
+        name: parent_type
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Discussion'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取子討論
+      tags:
+      - discussions
+  /discussions/search:
+    get:
+      consumes:
+      - application/json
+      description: 根據關鍵字搜索討論
+      parameters:
+      - description: Search Keyword
+        in: query
+        name: keyword
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Discussion'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 搜索討論
+      tags:
+      - discussions
+  /discussions/user/{user_id}:
+    get:
+      consumes:
+      - application/json
+      description: 獲取特定用戶的所有討論
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Discussion'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取特定用戶的所有討論
+      tags:
+      - discussions
+  /judges:
+    get:
+      consumes:
+      - application/json
+      description: 獲取所有題目的列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Judge'
+            type: array
+      summary: 獲取所有題目
+      tags:
+      - judges
+    post:
+      consumes:
+      - application/json
+      description: 創建一個新題目
+      parameters:
+      - description: Judge Info
+        in: body
+        name: judge
+        required: true
+        schema:
+          $ref: '#/definitions/models.Judge'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Judge'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 創建新題目
+      tags:
+      - judges
+  /judges/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 刪除特定題目
+      parameters:
+      - description: Judge ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 刪除題目
+      tags:
+      - judges
+    get:
+      consumes:
+      - application/json
+      description: 根據ID獲取特定題目
+      parameters:
+      - description: Judge ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Judge'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取特定題目
+      tags:
+      - judges
+    put:
+      consumes:
+      - application/json
+      description: 更新特定題目的信息
+      parameters:
+      - description: Judge ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Judge Info
+        in: body
+        name: judge
+        required: true
+        schema:
+          $ref: '#/definitions/models.Judge'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 更新題目
+      tags:
+      - judges
+  /judges/{id}/solutions:
+    get:
+      consumes:
+      - application/json
+      description: 獲取提交到特定題目的所有答案
+      parameters:
+      - description: Judge ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Solution'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取特定題目的所有答案
+      tags:
+      - solutions
+  /judges/difficulty/{difficulty}:
+    get:
+      consumes:
+      - application/json
+      description: 根據難度獲取符合條件的題目
+      parameters:
+      - description: Difficulty Level
+        in: path
+        name: difficulty
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Judge'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 根據難度獲取題目
+      tags:
+      - judges
+  /judges/tags:
+    get:
+      consumes:
+      - application/json
+      description: 根據標籤獲取符合條件的題目
+      parameters:
+      - description: Tags (comma separated)
+        in: query
+        name: tags
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Judge'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 根據標籤獲取題目
+      tags:
+      - judges
+  /schools:
+    get:
+      consumes:
+      - application/json
+      description: 獲取所有學校的列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.School'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取所有學校
+      tags:
+      - schools
+    post:
+      consumes:
+      - application/json
+      description: 創建新的學校
+      parameters:
+      - description: School
+        in: body
+        name: school
+        required: true
+        schema:
+          $ref: '#/definitions/models.School'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.School'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 創建學校
+      tags:
+      - schools
+  /schools/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 刪除學校
+      parameters:
+      - description: School ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 刪除學校
+      tags:
+      - schools
+    get:
+      consumes:
+      - application/json
+      description: 根據ID獲取特定學校
+      parameters:
+      - description: School ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.School'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取特定學校
+      tags:
+      - schools
+    put:
+      consumes:
+      - application/json
+      description: 更新學校的詳細信息
+      parameters:
+      - description: School ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: School
+        in: body
+        name: school
+        required: true
+        schema:
+          $ref: '#/definitions/models.School'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.School'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 更新學校
+      tags:
+      - schools
+  /schools/name:
+    get:
+      consumes:
+      - application/json
+      description: 根據名稱獲取學校
+      parameters:
+      - description: School Name
+        in: query
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.School'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 根據名稱獲取學校
+      tags:
+      - schools
+  /socials:
+    get:
+      consumes:
+      - application/json
+      description: 獲取所有社交欄位的列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Social'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取所有社交欄位
+      tags:
+      - socials
+    post:
+      consumes:
+      - application/json
+      description: 創建新的社交欄位
+      parameters:
+      - description: Social
+        in: body
+        name: social
+        required: true
+        schema:
+          $ref: '#/definitions/models.Social'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Social'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 創建社交欄位
+      tags:
+      - socials
+  /socials/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 根據ID刪除社交欄位
+      parameters:
+      - description: Social ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 刪除社交欄位
+      tags:
+      - socials
+    get:
+      consumes:
+      - application/json
+      description: 根據ID獲取特定社交欄位
+      parameters:
+      - description: Social ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Social'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取特定社交欄位
+      tags:
+      - socials
+    put:
+      consumes:
+      - application/json
+      description: 更新社交欄位的詳細信息
+      parameters:
+      - description: Social ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Social
+        in: body
+        name: social
+        required: true
+        schema:
+          $ref: '#/definitions/models.Social'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Social'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 更新社交欄位
+      tags:
+      - socials
+  /solutions:
+    get:
+      consumes:
+      - application/json
+      description: 獲取所有答案的列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Solution'
+            type: array
+      summary: 獲取所有答案
+      tags:
+      - solutions
+    post:
+      consumes:
+      - application/json
+      description: 提交一個新答案
+      parameters:
+      - description: Solution Info
+        in: body
+        name: solution
+        required: true
+        schema:
+          $ref: '#/definitions/models.Solution'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Solution'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 提交新答案
+      tags:
+      - solutions
+  /solutions/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 刪除特定答案
+      parameters:
+      - description: Solution ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 刪除答案
+      tags:
+      - solutions
+    get:
+      consumes:
+      - application/json
+      description: 根據ID獲取特定答案
+      parameters:
+      - description: Solution ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Solution'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取特定答案
+      tags:
+      - solutions
+  /solutions/{id}/result:
+    put:
+      consumes:
+      - application/json
+      description: 更新特定答案的評分結果
+      parameters:
+      - description: Solution ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Solution Result
+        in: body
+        name: result
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 更新答案結果
+      tags:
+      - solutions
+  /solutions/best:
+    get:
+      consumes:
+      - application/json
+      description: 獲取評分最高的答案列表
+      parameters:
+      - description: Judge ID
+        in: query
+        name: judge_id
+        type: string
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Solution'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取評分最高的答案
+      tags:
+      - solutions
+  /submit_effects:
+    get:
+      consumes:
+      - application/json
+      description: 獲取所有提交效果的列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.SubmitEffect'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取所有提交效果
+      tags:
+      - submit_effects
+    post:
+      consumes:
+      - application/json
+      description: 創建新的提交效果
+      parameters:
+      - description: SubmitEffect
+        in: body
+        name: submitEffect
+        required: true
+        schema:
+          $ref: '#/definitions/models.SubmitEffect'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.SubmitEffect'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 創建提交效果
+      tags:
+      - submit_effects
+  /submit_effects/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 根據ID刪除提交效果
+      parameters:
+      - description: SubmitEffect ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 刪除提交效果
+      tags:
+      - submit_effects
+    get:
+      consumes:
+      - application/json
+      description: 根據ID獲取特定提交效果
+      parameters:
+      - description: SubmitEffect ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SubmitEffect'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取特定提交效果
+      tags:
+      - submit_effects
+    put:
+      consumes:
+      - application/json
+      description: 更新提交效果的詳細信息
+      parameters:
+      - description: SubmitEffect ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: SubmitEffect
+        in: body
+        name: submitEffect
+        required: true
+        schema:
+          $ref: '#/definitions/models.SubmitEffect'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SubmitEffect'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 更新提交效果
+      tags:
+      - submit_effects
+  /userProfiles:
+    get:
+      consumes:
+      - application/json
+      description: 獲取所有用戶profile的列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.UserProfile'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取所有用戶profile
+      tags:
+      - userProfiles
+    post:
+      consumes:
+      - application/json
+      description: 創建新的用戶profile
+      parameters:
+      - description: User Profile
+        in: body
+        name: userProfile
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserProfile'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.UserProfile'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 創建用戶profile
+      tags:
+      - userProfiles
+  /userProfiles/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 刪除特定用戶profile
+      parameters:
+      - description: User Profile ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 刪除用戶profile
+      tags:
+      - userProfiles
+    get:
+      consumes:
+      - application/json
+      description: 根據ID獲取特定用戶profile
+      parameters:
+      - description: User Profile ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UserProfile'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取特定用戶profile
+      tags:
+      - userProfiles
+    put:
+      consumes:
+      - application/json
+      description: 更新用戶profile
+      parameters:
+      - description: User Profile ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: User Profile
+        in: body
+        name: userProfile
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserProfile'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UserProfile'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 更新用戶profile
+      tags:
+      - userProfiles
+  /userProfiles/{id}/avatar:
+    put:
+      consumes:
+      - application/json
+      description: 更新用戶profile的頭像URL
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Avatar URL
+        in: body
+        name: avatarURL
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 更新用戶profile的頭像URL
+      tags:
+      - userProfiles
+  /userProfiles/user/{userID}:
+    get:
+      consumes:
+      - application/json
+      description: 根據用戶ID獲取特定用戶profile
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UserProfile'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取特定用戶profile
+      tags:
+      - userProfiles
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: 獲取所有用戶的列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.User'
+            type: array
+      summary: 獲取所有用戶
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: 創建一個新用戶
+      parameters:
+      - description: User Info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 創建新用戶
+      tags:
+      - users
+  /users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 刪除特定用戶
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 刪除用戶
+      tags:
+      - users
+    get:
+      consumes:
+      - application/json
+      description: 根據ID獲取特定用戶
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取特定用戶
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: 更新特定用戶的信息
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: User Info
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 更新用戶
+      tags:
+      - users
+  /users/{id}/judges:
+    get:
+      consumes:
+      - application/json
+      description: 獲取特定用戶創建的所有題目
+      parameters:
+      - description: Creator ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Judge'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取特定用戶創建的題目
+      tags:
+      - judges
+  /users/{id}/password:
+    put:
+      consumes:
+      - application/json
+      description: 更新特定用戶的密碼
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Old and New Passwords
+        in: body
+        name: passwords
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 更新用戶密碼
+      tags:
+      - users
+  /users/{id}/profile:
+    get:
+      consumes:
+      - application/json
+      description: 獲取特定用戶的詳細資料
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UserProfile'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取用戶資料
+      tags:
+      - users
+  /users/{id}/solutions:
+    get:
+      consumes:
+      - application/json
+      description: 獲取特定用戶提交的所有答案
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Solution'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取特定用戶的所有答案
+      tags:
+      - solutions
+swagger: "2.0"
