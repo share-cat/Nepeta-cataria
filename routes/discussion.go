@@ -2,26 +2,31 @@ package routes
 
 import (
 	"share-cat/Nepeta-cataria/controllers"
+	"share-cat/Nepeta-cataria/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
 func SetupDiscussionRoutes(router *gin.RouterGroup, controller *controllers.DiscussionController) {
-	discussions := router.Group("/discussions")
+	publicDiscussions := router.Group("/discussions")
 	{
-		discussions.GET("", controller.GetDiscussions)
-		discussions.GET("/:id", controller.GetDiscussion)
-		discussions.POST("", controller.CreateDiscussion)
-		discussions.PUT("/:id", controller.UpdateDiscussion)
-		discussions.DELETE("/:id", controller.DeleteDiscussion)
+		publicDiscussions.GET("", controller.GetDiscussions)
+		publicDiscussions.GET("/:id", controller.GetDiscussion)
 
 		// 獲取特定用戶的討論
-		discussions.GET("/user/:user_id", controller.GetUserDiscussions)
+		publicDiscussions.GET("/user/:user_id", controller.GetUserDiscussions)
 
 		// 獲取子討論（回覆）
-		discussions.GET("/parent/:parent_type/:parent_id", controller.GetChildDiscussions)
+		publicDiscussions.GET("/parent/:parent_type/:parent_id", controller.GetChildDiscussions)
 
 		// 搜索討論
-		discussions.GET("/search", controller.SearchDiscussions)
+		publicDiscussions.GET("/search", controller.SearchDiscussions)
+	}
+
+	protectedDiscussions := router.Group("/discussions", middleware.JwtAuth())
+	{
+		protectedDiscussions.POST("", controller.CreateDiscussion)
+		protectedDiscussions.PUT("/:id", controller.UpdateDiscussion)
+		protectedDiscussions.DELETE("/:id", controller.DeleteDiscussion)
 	}
 }

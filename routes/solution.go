@@ -8,14 +8,17 @@ import (
 )
 
 func SetupSolutionRoutes(router *gin.RouterGroup, solutionController *controllers.SolutionController) {
-	solutions := router.Group("/solutions", middleware.JwtAuth())
+	publicSolutions := router.Group("/solutions")
 	{
-		solutions.GET("", solutionController.GetSolutions)
-		solutions.GET("/:id", solutionController.GetSolution)
-		solutions.POST("", solutionController.SubmitSolution)
-		solutions.PUT("/:id/result", solutionController.UpdateSolutionResult)
-		solutions.DELETE("/:id", solutionController.DeleteSolution)
+		publicSolutions.GET("", solutionController.GetSolutions)
+		publicSolutions.GET("/:id", solutionController.GetSolution)
+		publicSolutions.GET("/best", solutionController.GetBestSolutions)
+	}
 
-		solutions.GET("/best", solutionController.GetBestSolutions)
+	protectedSolutions := router.Group("/solutions", middleware.JwtAuth())
+	{
+		protectedSolutions.POST("", solutionController.SubmitSolution)
+		protectedSolutions.PUT("/:id/result", solutionController.UpdateSolutionResult)
+		protectedSolutions.DELETE("/:id", solutionController.DeleteSolution)
 	}
 }

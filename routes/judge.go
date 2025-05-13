@@ -8,22 +8,27 @@ import (
 )
 
 func SetupJudgeRoutes(router *gin.RouterGroup, judgeController *controllers.JudgeController, solutionController *controllers.SolutionController) {
-	judges := router.Group("/judges", middleware.JwtAuth())
+
+	publicJudges := router.Group("/judges")
 	{
-		judges.GET("", judgeController.GetJudges)
-		judges.GET("/:id", judgeController.GetJudge)
-		judges.POST("", judgeController.CreateJudge)
-		judges.PUT("/:id", judgeController.UpdateJudge)
-		judges.DELETE("/:id", judgeController.DeleteJudge)
+		publicJudges.GET("", judgeController.GetJudges)
+		publicJudges.GET("/:id", judgeController.GetJudge)
 
 		// 根據標籤獲取題目
-		judges.GET("/tags", judgeController.GetJudgesByTags)
+		publicJudges.GET("/tags", judgeController.GetJudgesByTags)
 
 		// 根據難度獲取題目
-		judges.GET("/difficulty/:difficulty", judgeController.GetJudgesByDifficulty)
+		publicJudges.GET("/difficulty/:difficulty", judgeController.GetJudgesByDifficulty)
 
 		// 獲取特定題目的所有答案
-		judges.GET("/:id/solutions", solutionController.GetJudgeSolutions)
+		publicJudges.GET("/:id/solutions", solutionController.GetJudgeSolutions)
+	}
+
+	protectedJudges := router.Group("/judges", middleware.JwtAuth())
+	{
+		protectedJudges.POST("", judgeController.CreateJudge)
+		protectedJudges.PUT("/:id", judgeController.UpdateJudge)
+		protectedJudges.DELETE("/:id", judgeController.DeleteJudge)
 	}
 
 }
