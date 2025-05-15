@@ -35,6 +35,65 @@ func (r *UserRepository) GetByUsername(username string) (models.User, error) {
 	return user, result.Error
 }
 
+// RegisterUser 註冊用戶及相關資料
+func (r *UserRepository) RegisterUser(newUser models.User) (models.User, error) {
+
+	tx := r.db.Begin()
+
+	permission := models.Permission{
+		IsAdmin:   false,
+		IsTeacher: false,
+		IsStudent: true,
+	}
+
+	if err := tx.Create(&permission).Error; err != nil {
+		tx.Rollback()
+		return models.User{}, err
+	}
+
+	newUser.PermissionID = int(permission.ID)
+
+	if err := tx.Create(&newUser).Error; err != nil {
+		tx.Rollback()
+		return models.User{}, err
+	}
+
+	social := models.Social{}
+	if err := tx.Create(&social).Error; err != nil {
+		tx.Rollback()
+		return models.User{}, err
+	}
+
+	userProfile := models.UserProfile{
+		UserID:    int(newUser.ID),
+		SocialID:  int(social.ID),
+		AvatarURL: newUser.AvatarUrl,
+	}
+
+	if err := tx.Create(&userProfile).Error; err != nil {
+		tx.Rollback()
+		return models.User{}, err
+	}
+
+	rpgProfile := models.RpgProfile{
+		UserID: int(newUser.ID),
+		Level:  1,
+	}
+
+	if err := tx.Create(&rpgProfile).Error; err != nil {
+		tx.Rollback()
+		return models.User{}, err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return models.User{}, err
+	}
+
+	var createdUser models.User
+	r.db.Preload("Permission").First(&createdUser, newUser.ID)
+	return createdUser, nil
+}
+
 // Create 創建新用戶
 func (r *UserRepository) Create(user models.User) (models.User, error) {
 	result := r.db.Create(&user)

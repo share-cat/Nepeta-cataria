@@ -98,7 +98,7 @@ type User struct {
 	RegisterTime time.Time `gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP"`
 	Email        string    `gorm:"type:varchar(255);uniqueIndex"`
 	AvatarUrl    string    `gorm:"type:varchar(255)"`
-	PermissionID *int
+	PermissionID int
 
 	Permission    *Permission    `gorm:"foreignKey:PermissionID"`
 	UserProfile   *UserProfile   `gorm:"foreignKey:UserID"`
@@ -114,8 +114,8 @@ type User struct {
 type UserProfile struct {
 	// 使用者個人資料
 	gorm.Model
-	UserID    int    `gorm:"primaryKey"`
-	SchoolID  int    `gorm:"not null"`
+	UserID    int `gorm:"primaryKey"`
+	SchoolID  int
 	SocialID  int    `gorm:"not null"`
 	AvatarURL string `gorm:"type:varchar(255)"`
 

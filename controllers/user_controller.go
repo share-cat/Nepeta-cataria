@@ -76,21 +76,19 @@ func (c *UserController) GetUser(ctx *gin.Context) {
 // @Tags users
 // @Accept json
 // @Produce json
-// @Param user body models.User true "User Info"
+// @Param user body models.UserRegister true "User data"
 // @Success 201 {object} models.User
 // @Failure 400 {object} map[string]string
 // @Router /users [post]
 func (c *UserController) CreateUser(ctx *gin.Context) {
-	var user models.User
-
-	if err := ctx.ShouldBindJSON(&user); err != nil {
+	var newUser models.UserRegister
+	if err := ctx.ShouldBindJSON(&newUser); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
-
-	createdUser, err := c.userService.CreateUser(user)
+	createdUser, err := c.userService.RegisterUser(newUser)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),

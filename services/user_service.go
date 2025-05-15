@@ -30,8 +30,13 @@ func (s *UserService) GetUserByID(id uint) (models.User, error) {
 	return s.repo.GetByID(id)
 }
 
+// GetUserByUsername 根據用戶名獲取用戶
+func (s *UserService) GetUserByUsername(username string) (models.User, error) {
+	return s.repo.GetByUsername(username)
+}
+
 // CreateUser 創建新用戶
-// TODO: 權限更新
+// For System
 func (s *UserService) CreateUser(user models.User) (models.User, error) {
 
 	existingUser, err := s.repo.GetByUsername(user.Username)
@@ -48,6 +53,29 @@ func (s *UserService) CreateUser(user models.User) (models.User, error) {
 	user.RegisterTime = time.Now()
 
 	return s.repo.Create(user)
+}
+
+// RegisterUser 註冊新用戶
+func (s *UserService) RegisterUser(user models.UserRegister) (models.User, error) {
+
+	existingUser, err := s.repo.GetByUsername(user.Username)
+	if err == nil && existingUser.ID != 0 {
+		return models.User{}, errors.New("用戶名已存在")
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return models.User{}, err
+	}
+
+	newUser := models.User{
+		Username:     user.Username,
+		Password:     string(hashedPassword),
+		RegisterTime: time.Now(),
+		Email:        user.Email,
+	}
+
+	return s.repo.RegisterUser(newUser)
 }
 
 // UpdateUser 更新用戶信息
@@ -73,10 +101,6 @@ func (s *UserService) UpdateUser(id uint, userUpdate models.User) error {
 
 	if userUpdate.AvatarUrl != "" {
 		user.AvatarUrl = userUpdate.AvatarUrl
-	}
-
-	if userUpdate.PermissionID != nil {
-		user.PermissionID = userUpdate.PermissionID
 	}
 
 	return s.repo.Update(user)
