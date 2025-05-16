@@ -10,7 +10,7 @@ import (
 
 type Repositories struct {
 	AchievementRepo  *repositories.AchievementRepository
-	ChatsessionRepo  *repositories.ChatSessionRepository
+	ChatSessionRepo  *repositories.ChatSessionRepository
 	DiscussionRepo   *repositories.DiscussionRepository
 	JudgeRepo        *repositories.JudgeRepository
 	SchoolRepo       *repositories.SchoolRepository
@@ -36,6 +36,7 @@ type Services struct {
 }
 
 type Controllers struct {
+	AuthController         *controllers.AuthController
 	AchievementController  *controllers.AchievementController
 	ChatSessionController  *controllers.ChatSessionController
 	DiscussionController   *controllers.DiscussionController
@@ -56,26 +57,48 @@ type Application struct {
 
 func NewRepositories(db *gorm.DB) Repositories {
 	return Repositories{
-		UserRepo:        repositories.NewUserRepository(db),
-		JudgeRepo:       repositories.NewJudgeRepository(db),
-		SolutionRepo:    repositories.NewSolutionRepository(db),
-		SupportLangRepo: repositories.NewSupportLangRepository(db),
+		AchievementRepo:  repositories.NewAchievementRepository(db),
+		ChatSessionRepo:  repositories.NewChatSessionRepository(db),
+		DiscussionRepo:   repositories.NewDiscussionRepository(db),
+		JudgeRepo:        repositories.NewJudgeRepository(db),
+		SchoolRepo:       repositories.NewSchoolRepository(db),
+		SocialRepo:       repositories.NewSocialRepository(db),
+		SolutionRepo:     repositories.NewSolutionRepository(db),
+		SubmiteffectRepo: repositories.NewSubmitEffectRepository(db),
+		SupportLangRepo:  repositories.NewSupportLangRepository(db),
+		UserRepo:         repositories.NewUserRepository(db),
+		UserProfileRepo:  repositories.NewUserProfileRepository(db),
 	}
 }
 
 func NewServices(repos Repositories) Services {
 	return Services{
-		UserService:     services.NewUserService(repos.UserRepo),
-		JudgeService:    services.NewJudgeService(repos.JudgeRepo, repos.UserRepo),
-		SolutionService: services.NewSolutionService(repos.SolutionRepo, repos.UserRepo, repos.JudgeRepo, repos.SupportLangRepo),
+		AchievementService:  services.NewAchievementService(repos.AchievementRepo),
+		ChatSessionService:  services.NewChatSessionService(repos.ChatSessionRepo, repos.UserRepo, repos.JudgeRepo),
+		DiscussionService:   services.NewDiscussionService(repos.DiscussionRepo, repos.UserRepo),
+		JudgeService:        services.NewJudgeService(repos.JudgeRepo, repos.UserRepo),
+		SchoolService:       services.NewSchoolService(repos.SchoolRepo),
+		SocialService:       services.NewSocialService(repos.SocialRepo),
+		SolutionService:     services.NewSolutionService(repos.SolutionRepo, repos.UserRepo, repos.JudgeRepo, repos.SupportLangRepo),
+		SubmitEffectService: services.NewSubmitEffectService(repos.SubmiteffectRepo),
+		UserService:         services.NewUserService(repos.UserRepo),
+		UserProfileService:  services.NewUserProfileService(repos.UserProfileRepo, repos.UserRepo),
 	}
 }
 
 func NewControllers(services Services) Controllers {
 	return Controllers{
-		UserController:     controllers.NewUserController(services.UserService),
-		JudgeController:    controllers.NewJudgeController(services.JudgeService),
-		SolutionController: controllers.NewSolutionController(services.SolutionService),
+		AuthController:         controllers.NewAuthController(services.UserService),
+		AchievementController:  controllers.NewAchievementController(services.AchievementService),
+		ChatSessionController:  controllers.NewChatSessionController(services.ChatSessionService),
+		DiscussionController:   controllers.NewDiscussionController(services.DiscussionService),
+		SchoolController:       controllers.NewSchoolController(services.SchoolService),
+		SocialController:       controllers.NewSocialController(services.SocialService),
+		SubmitEffectController: controllers.NewSubmitEffectController(services.SubmitEffectService),
+		UserProfileController:  controllers.NewUserProfileController(services.UserProfileService),
+		UserController:         controllers.NewUserController(services.UserService),
+		JudgeController:        controllers.NewJudgeController(services.JudgeService),
+		SolutionController:     controllers.NewSolutionController(services.SolutionService),
 	}
 }
 

@@ -18,29 +18,29 @@ func CreateToken(userID string) (*Auth, error) {
 		"exp":    jwt.NewNumericDate(time.Now().Add(time.Minute * 30)).Unix(),
 		"iat":    jwt.NewNumericDate(time.Now()).Unix(),
 	}
-	reflashclaims := jwt.MapClaims{
+	refreshclaims := jwt.MapClaims{
 		"userID": userID,
 		"exp":    jwt.NewNumericDate(time.Now().AddDate(0, 0, 7)).Unix(),
 		"iat":    jwt.NewNumericDate(time.Now()).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	reflashToken := jwt.NewWithClaims(jwt.SigningMethodHS256, reflashclaims)
+	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshclaims)
 	signedToken, err := token.SignedString([]byte("your-secret-key"))
 	if err != nil {
 		return nil, err
 	}
-	signedReflashToken, err := reflashToken.SignedString([]byte("your-secret-key"))
+	signedRefreshToken, err := refreshToken.SignedString([]byte("your-secret-key"))
 	if err != nil {
 		return nil, err
 	}
 	auth := &Auth{
 		Token:        signedToken,
-		RefreshToken: signedReflashToken,
+		RefreshToken: signedRefreshToken,
 	}
 	return auth, nil
 }
 
-func ReflashToken(token string) (string, error) {
+func RefreshToken(token string) (string, error) {
 	parsedToken, err := ParseToken(token)
 	if err != nil {
 		return "", err

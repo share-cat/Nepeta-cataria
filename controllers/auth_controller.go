@@ -86,7 +86,7 @@ func (c *AuthController) Login(ctx *gin.Context) {
 	})
 }
 
-// ReflashToken 刷新token
+// RefreshToken 刷新token
 // @Summary 刷新token
 // @Description 刷新token，返回新的token
 // @Tags auth
@@ -98,14 +98,14 @@ func (c *AuthController) Login(ctx *gin.Context) {
 // @Failure 401 {object} map[string]string "無效的 Refresh Token"
 // @Failure 500 {object} map[string]string "伺服器內部錯誤"
 // @Router /auth/refresh [post]
-func (c *AuthController) ReflashToken(ctx *gin.Context) {
+func (c *AuthController) RefreshToken(ctx *gin.Context) {
 	var req RefreshTokenRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "請求參數無效"})
 		return
 	}
 
-	newToken, err := utils.ReflashToken(req.RefreshToken)
+	newToken, err := utils.RefreshToken(req.RefreshToken)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "無效的 Refresh Token"})
 		return

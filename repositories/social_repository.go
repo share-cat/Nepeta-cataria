@@ -10,7 +10,7 @@ type SocialRepository struct {
 	db *gorm.DB
 }
 
-func NewSociaRepository(db *gorm.DB) *SocialRepository {
+func NewSocialRepository(db *gorm.DB) *SocialRepository {
 	return &SocialRepository{db: db}
 }
 
