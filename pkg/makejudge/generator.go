@@ -121,8 +121,7 @@ func GenerateMainSolutionFile(problemDir, targetLang string, config ProblemConfi
 	return outputFilePath, nil
 }
 
-func GenerateFrontendDisplayFile(problemDir string, config ProblemConfig) error {
-	log.Printf("Generating display file for problem: %s", config.Name)
+func generateFrontendDisplayData(problemDir string, config ProblemConfig) (FrontendDisplayData, error) {
 	var displayData FrontendDisplayData
 	displayData.ProblemTitle = config.Name
 	displayData.ShortDescription = config.Description
@@ -163,13 +162,13 @@ func GenerateFrontendDisplayFile(problemDir string, config ProblemConfig) error 
 	if sampleInPath != "" && FileExists(sampleInPath) {
 		sampleInBytes, err := os.ReadFile(sampleInPath)
 		if err != nil {
-			log.Printf("Warning: Failed to read sample input from %s for display.json: %v", sampleInPath, err)
+			log.Printf("Warning: Failed to read sample input from %s for display data: %v", sampleInPath, err)
 			displayData.SampleInput = "(Could not load sample input)"
 		} else {
 			displayData.SampleInput = string(sampleInBytes)
 		}
 	} else {
-		log.Printf("Warning: No sample input file found for display.json in %s", problemDir)
+		log.Printf("Warning: No sample input file found for display data in %s", problemDir)
 		displayData.SampleInput = "(No sample input available)"
 	}
 
@@ -184,28 +183,57 @@ func GenerateFrontendDisplayFile(problemDir string, config ProblemConfig) error 
 	if sampleOutPath != "" && FileExists(sampleOutPath) {
 		sampleOutBytes, err := os.ReadFile(sampleOutPath)
 		if err != nil {
-			log.Printf("Warning: Failed to read sample output from %s for display.json: %v", sampleOutPath, err)
+			log.Printf("Warning: Failed to read sample output from %s for display data: %v", sampleOutPath, err)
 			displayData.SampleOutput = "(Could not load sample output)"
 		} else {
 			displayData.SampleOutput = string(sampleOutBytes)
 		}
 	} else {
-		log.Printf("Warning: No corresponding sample output file found for display.json (tried %s)", sampleOutPath)
+		log.Printf("Warning: No corresponding sample output file found for display data (tried %s)", sampleOutPath)
 		displayData.SampleOutput = "(No sample output available)"
+	}
+
+	log.Printf("Successfully generated display data for problem: %s", config.Name)
+	return displayData, nil
+}
+
+func GenerateFrontendDisplayJSON(problemDir string, config ProblemConfig) (string, error) {
+	displayData, err := generateFrontendDisplayData(problemDir, config)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate display data: %w", err)
 	}
 
 	jsonData, err := json.MarshalIndent(displayData, "", "  ")
 	if err != nil {
-		return fmt.Errorf("failed to marshal display data to JSON: %w", err)
+		return "", fmt.Errorf("failed to marshal display data to JSON: %w", err)
+	}
+
+	return string(jsonData), nil
+}
+
+func GenerateFrontendDisplayFile(problemDir string, config ProblemConfig) error {
+	jsonData, err := GenerateFrontendDisplayJSON(problemDir, config)
+	if err != nil {
+		return fmt.Errorf("failed to generate display JSON: %w", err)
 	}
 
 	displayFilePath := filepath.Join(problemDir, DisplayFileName)
-	err = WriteStringToFile(displayFilePath, string(jsonData))
+	err = WriteStringToFile(displayFilePath, jsonData)
 	if err != nil {
 		return fmt.Errorf("failed to write display file to %s: %w", displayFilePath, err)
 	}
+
 	log.Printf("Successfully generated display file: %s", displayFilePath)
 	return nil
+}
+
+func GetFrontendDisplayJSON(problemDir string, config ProblemConfig) (FrontendDisplayData, error) {
+	displayData, err := generateFrontendDisplayData(problemDir, config)
+	if err != nil {
+		return FrontendDisplayData{}, fmt.Errorf("failed to generate display data: %w", err)
+	}
+	return displayData, nil
+
 }
 
 func ScaffoldProblem(problemDir, targetLang string) error {

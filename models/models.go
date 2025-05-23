@@ -11,11 +11,17 @@ type Judge struct {
 	gorm.Model
 	Name         string        `gorm:"type:varchar(255);not null"`
 	Description  string        `gorm:"type:text"`
+	Readme       string        `gorm:"type:text"`
 	CreatorID    int           `gorm:"not null"`
 	Tags         []string      `gorm:"type:varchar(255)[];column:tag"`
+	Langs        []string      `gorm:"type:varchar(255)[]"`
 	Type         string        `gorm:"type:varchar(255);not null"`
+	MemoryLimit  int           `gorm:"default:0"`
+	TimeLimit    int           `gorm:"default:0"`
+	CheckType    string        `gorm:"type:varchar(255);not null"`
 	IsActive     bool          `gorm:"default:true"`
 	Difficulty   int           `gorm:"default:0"`
+	FullSetting  pgtype.JSON   `gorm:"type:jsonb,default:'{}'"`
 	Creator      User          `gorm:"foreignKey:CreatorID"`
 	Solutions    []Solution    `gorm:"foreignKey:JudgeID"`
 	ChatSessions []ChatSession `gorm:"foreignKey:JudgeID"`
