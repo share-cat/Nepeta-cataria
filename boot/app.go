@@ -26,6 +26,7 @@ type Services struct {
 	AchievementService  *services.AchievementService
 	ChatSessionService  *services.ChatSessionService
 	DiscussionService   *services.DiscussionService
+	LoadJudgeService    *services.LoadJudgeService
 	JudgeService        *services.JudgeService
 	SchoolService       *services.SchoolService
 	SocialService       *services.SocialService
@@ -40,6 +41,7 @@ type Controllers struct {
 	AchievementController  *controllers.AchievementController
 	ChatSessionController  *controllers.ChatSessionController
 	DiscussionController   *controllers.DiscussionController
+	LoadJudgeController    *controllers.LoadJudgeController
 	SchoolController       *controllers.SchoolController
 	SocialController       *controllers.SocialController
 	SubmitEffectController *controllers.SubmitEffectController
@@ -76,6 +78,7 @@ func NewServices(repos Repositories) Services {
 		AchievementService:  services.NewAchievementService(repos.AchievementRepo),
 		ChatSessionService:  services.NewChatSessionService(repos.ChatSessionRepo, repos.UserRepo, repos.JudgeRepo),
 		DiscussionService:   services.NewDiscussionService(repos.DiscussionRepo, repos.UserRepo),
+		LoadJudgeService:    services.NewLoadJudgeService(repos.JudgeRepo),
 		JudgeService:        services.NewJudgeService(repos.JudgeRepo, repos.UserRepo),
 		SchoolService:       services.NewSchoolService(repos.SchoolRepo),
 		SocialService:       services.NewSocialService(repos.SocialRepo),
@@ -92,6 +95,7 @@ func NewControllers(services Services) Controllers {
 		AchievementController:  controllers.NewAchievementController(services.AchievementService),
 		ChatSessionController:  controllers.NewChatSessionController(services.ChatSessionService),
 		DiscussionController:   controllers.NewDiscussionController(services.DiscussionService),
+		LoadJudgeController:    controllers.NewLoadJudgeController(services.LoadJudgeService),
 		SchoolController:       controllers.NewSchoolController(services.SchoolService),
 		SocialController:       controllers.NewSocialController(services.SocialService),
 		SubmitEffectController: controllers.NewSubmitEffectController(services.SubmitEffectService),

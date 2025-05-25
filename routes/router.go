@@ -24,6 +24,7 @@ func SetupRouter(g *gin.Engine, db *gorm.DB, controllers boot.Controllers) {
 	SetupUserProfileRoutes(api, controllers.UserProfileController)
 	SetupUserRoutes(api, controllers.UserController, controllers.JudgeController, controllers.SolutionController)
 	SetupAuthRoutes(api, controllers.AuthController)
+	SetupLoadjudgeRoutes(api, controllers.LoadJudgeController)
 	SetupSwaggerRoutes(api)
 
 }

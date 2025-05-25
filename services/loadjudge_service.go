@@ -13,33 +13,23 @@ import (
 	"share-cat/Nepeta-cataria/repositories"
 	"strings"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type LoadJudgeService struct {
-	judgeService    *JudgeService
-	supportLangRepo *repositories.SupportLangRepository
-	judgeRepo       *repositories.JudgeRepository
-	db              *gorm.DB
-	judgesBaseDir   string
+	judgeRepo     *repositories.JudgeRepository
+	judgesBaseDir string
 }
 
 func NewLoadJudgeService(
-	judgeService *JudgeService,
-	supportLangRepo *repositories.SupportLangRepository,
 	judgeRepo *repositories.JudgeRepository,
-	db *gorm.DB,
+
 ) *LoadJudgeService {
 	workDir, _ := os.Getwd()
 	judgesBaseDir := filepath.Join(workDir, "judges")
 
 	return &LoadJudgeService{
-		judgeService:    judgeService,
-		supportLangRepo: supportLangRepo,
-		judgeRepo:       judgeRepo,
-		db:              db,
-		judgesBaseDir:   judgesBaseDir,
+		judgeRepo:     judgeRepo,
+		judgesBaseDir: judgesBaseDir,
 	}
 }
 
@@ -234,13 +224,13 @@ func (s *LoadJudgeService) createJudgeRecord(config makejudge.ProblemConfig, cre
 	}
 
 	fullSetting := map[string]interface{}{
-		"config":           config,
-		"problem_path":     configDir,
-		"test_data_path":   filepath.Join(configDir, makejudge.TestDataDir),
-		"checker_file":     config.Checker.File,
-		"checker_lang":     config.Checker.Language,
-		"frontend_display": json.RawMessage(frontendJSON),
-		"created_at":       time.Now().Unix(),
+		"config":         config,
+		"problem_path":   configDir,
+		"test_data_path": filepath.Join(configDir, makejudge.TestDataDir),
+		"checker_file":   config.Checker.File,
+		"checker_lang":   config.Checker.Language,
+		"fullsetting":    json.RawMessage(frontendJSON),
+		"created_at":     time.Now().Unix(),
 	}
 
 	fullSettingJSON, err := json.Marshal(fullSetting)
@@ -260,7 +250,7 @@ func (s *LoadJudgeService) createJudgeRecord(config makejudge.ProblemConfig, cre
 		level = 1
 	}
 
-	judge := &models.Judge{
+	judge := models.Judge{
 		Name:        config.Name,
 		Description: config.Description,
 		Readme:      readme,
@@ -279,11 +269,12 @@ func (s *LoadJudgeService) createJudgeRecord(config makejudge.ProblemConfig, cre
 		return nil, fmt.Errorf("設定 FullSetting 失敗: %w", err)
 	}
 
-	if err := s.db.Create(judge).Error; err != nil {
+	createdJudge, err := s.judgeRepo.Create(judge)
+	if err != nil {
 		return nil, fmt.Errorf("儲存 Judge 記錄失敗: %w", err)
 	}
 
-	return judge, nil
+	return &createdJudge, nil
 }
 
 func (s *LoadJudgeService) ValidateZipFile(zipPath string) error {
@@ -317,8 +308,9 @@ func (s *LoadJudgeService) ValidateZipFile(zipPath string) error {
 }
 
 func (s *LoadJudgeService) GetJudgeDirectory(judgeID uint) (string, error) {
-	var judge models.Judge
-	if err := s.db.First(&judge, judgeID).Error; err != nil {
+
+	judge, err := s.judgeRepo.GetByID(judgeID)
+	if err != nil {
 		return "", fmt.Errorf("找不到 Judge 記錄: %w", err)
 	}
 
