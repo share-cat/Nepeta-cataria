@@ -1672,6 +1672,303 @@
                 }
             }
         },
+        "/load-judge/base-directory": {
+            "get": {
+                "description": "獲取所有題目的基礎存儲目錄",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "loadjudge"
+                ],
+                "summary": "獲取題目基礎目錄",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/load-judge/directory/{id}": {
+            "get": {
+                "description": "根據題目 ID 獲取其在伺服器上的目錄路徑",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "loadjudge"
+                ],
+                "summary": "獲取題目目錄路徑",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Judge ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/load-judge/download/{id}": {
+            "get": {
+                "description": "下載指定題目的相關檔案",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "loadjudge"
+                ],
+                "summary": "下載題目相關檔案",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Judge ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "File path relative to judge directory",
+                        "name": "file_path",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/load-judge/path": {
+            "post": {
+                "description": "從伺服器上指定的 ZIP 檔案路徑載入題目",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "loadjudge"
+                ],
+                "summary": "從指定路徑載入題目",
+                "parameters": [
+                    {
+                        "description": "Load Judge Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/services.LoadJudgeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/services.LoadJudgeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/load-judge/upload": {
+            "post": {
+                "description": "上傳 ZIP 檔案並載入為題目",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "loadjudge"
+                ],
+                "summary": "上傳並載入題目",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Judge ZIP file",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Custom judge name",
+                        "name": "judge_name",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/services.LoadJudgeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/load-judge/validate": {
+            "post": {
+                "description": "驗證上傳的 ZIP 檔案是否符合題目格式",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "loadjudge"
+                ],
+                "summary": "驗證題目 ZIP 檔案",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Judge ZIP file",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/schools": {
             "get": {
                 "description": "獲取所有學校的列表",
@@ -3676,6 +3973,9 @@
                         "$ref": "#/definitions/models.ChatSession"
                     }
                 },
+                "checkType": {
+                    "type": "string"
+                },
                 "createdAt": {
                     "type": "string"
                 },
@@ -3694,13 +3994,28 @@
                 "difficulty": {
                     "type": "integer"
                 },
+                "fullSetting": {
+                    "$ref": "#/definitions/pgtype.JSON"
+                },
                 "id": {
                     "type": "integer"
                 },
                 "isActive": {
                     "type": "boolean"
                 },
+                "langs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "memoryLimit": {
+                    "type": "integer"
+                },
                 "name": {
+                    "type": "string"
+                },
+                "readme": {
                     "type": "string"
                 },
                 "solutions": {
@@ -3714,6 +4029,9 @@
                     "items": {
                         "type": "string"
                     }
+                },
+                "timeLimit": {
+                    "type": "integer"
                 },
                 "type": {
                     "type": "string"
@@ -4109,6 +4427,20 @@
                 }
             }
         },
+        "pgtype.JSON": {
+            "type": "object",
+            "properties": {
+                "bytes": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "status": {
+                    "$ref": "#/definitions/pgtype.Status"
+                }
+            }
+        },
         "pgtype.JSONB": {
             "type": "object",
             "properties": {
@@ -4135,6 +4467,43 @@
                 "Null",
                 "Present"
             ]
+        },
+        "services.LoadJudgeRequest": {
+            "type": "object",
+            "properties": {
+                "creator_id": {
+                    "type": "integer"
+                },
+                "judge_name": {
+                    "type": "string"
+                },
+                "zip_file_path": {
+                    "type": "string"
+                }
+            }
+        },
+        "services.LoadJudgeResponse": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "judge_id": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "permanent_path": {
+                    "type": "string"
+                },
+                "success": {
+                    "type": "boolean"
+                }
+            }
         }
     }
 }

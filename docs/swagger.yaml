@@ -121,6 +121,8 @@ definitions:
         items:
           $ref: '#/definitions/models.ChatSession'
         type: array
+      checkType:
+        type: string
       createdAt:
         type: string
       creator:
@@ -133,11 +135,21 @@ definitions:
         type: string
       difficulty:
         type: integer
+      fullSetting:
+        $ref: '#/definitions/pgtype.JSON'
       id:
         type: integer
       isActive:
         type: boolean
+      langs:
+        items:
+          type: string
+        type: array
+      memoryLimit:
+        type: integer
       name:
+        type: string
+      readme:
         type: string
       solutions:
         items:
@@ -147,6 +159,8 @@ definitions:
         items:
           type: string
         type: array
+      timeLimit:
+        type: integer
       type:
         type: string
       updatedAt:
@@ -406,6 +420,15 @@ definitions:
       username:
         type: string
     type: object
+  pgtype.JSON:
+    properties:
+      bytes:
+        items:
+          type: integer
+        type: array
+      status:
+        $ref: '#/definitions/pgtype.Status'
+    type: object
   pgtype.JSONB:
     properties:
       bytes:
@@ -425,6 +448,30 @@ definitions:
     - Undefined
     - "Null"
     - Present
+  services.LoadJudgeRequest:
+    properties:
+      creator_id:
+        type: integer
+      judge_name:
+        type: string
+      zip_file_path:
+        type: string
+    type: object
+  services.LoadJudgeResponse:
+    properties:
+      description:
+        type: string
+      judge_id:
+        type: integer
+      message:
+        type: string
+      name:
+        type: string
+      permanent_path:
+        type: string
+      success:
+        type: boolean
+    type: object
 info:
   contact: {}
 paths:
@@ -1531,6 +1578,202 @@ paths:
       summary: 根據標籤獲取題目
       tags:
       - judges
+  /load-judge/base-directory:
+    get:
+      consumes:
+      - application/json
+      description: 獲取所有題目的基礎存儲目錄
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取題目基礎目錄
+      tags:
+      - loadjudge
+  /load-judge/directory/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 根據題目 ID 獲取其在伺服器上的目錄路徑
+      parameters:
+      - description: Judge ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取題目目錄路徑
+      tags:
+      - loadjudge
+  /load-judge/download/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 下載指定題目的相關檔案
+      parameters:
+      - description: Judge ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: File path relative to judge directory
+        in: query
+        name: file_path
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 下載題目相關檔案
+      tags:
+      - loadjudge
+  /load-judge/path:
+    post:
+      consumes:
+      - application/json
+      description: 從伺服器上指定的 ZIP 檔案路徑載入題目
+      parameters:
+      - description: Load Judge Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/services.LoadJudgeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/services.LoadJudgeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 從指定路徑載入題目
+      tags:
+      - loadjudge
+  /load-judge/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 上傳 ZIP 檔案並載入為題目
+      parameters:
+      - description: Judge ZIP file
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: Custom judge name
+        in: formData
+        name: judge_name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/services.LoadJudgeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 上傳並載入題目
+      tags:
+      - loadjudge
+  /load-judge/validate:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 驗證上傳的 ZIP 檔案是否符合題目格式
+      parameters:
+      - description: Judge ZIP file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 驗證題目 ZIP 檔案
+      tags:
+      - loadjudge
   /schools:
     get:
       consumes:
