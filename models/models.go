@@ -21,7 +21,7 @@ type Judge struct {
 	CheckType    string        `gorm:"type:varchar(255);not null"`
 	IsActive     bool          `gorm:"default:true"`
 	Difficulty   int           `gorm:"default:0"`
-	FullSetting  pgtype.JSON   `gorm:"type:jsonb,default:'{}'"`
+	FullSetting  pgtype.JSONB  `gorm:"type:jsonb;default:'{}'"`
 	Creator      User          `gorm:"foreignKey:CreatorID"`
 	Solutions    []Solution    `gorm:"foreignKey:JudgeID"`
 	ChatSessions []ChatSession `gorm:"foreignKey:JudgeID"`

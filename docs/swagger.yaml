@@ -136,7 +136,7 @@ definitions:
       difficulty:
         type: integer
       fullSetting:
-        $ref: '#/definitions/pgtype.JSON'
+        $ref: '#/definitions/pgtype.JSONB'
       id:
         type: integer
       isActive:
@@ -419,15 +419,6 @@ definitions:
         type: string
       username:
         type: string
-    type: object
-  pgtype.JSON:
-    properties:
-      bytes:
-        items:
-          type: integer
-        type: array
-      status:
-        $ref: '#/definitions/pgtype.Status'
     type: object
   pgtype.JSONB:
     properties:

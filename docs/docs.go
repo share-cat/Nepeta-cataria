@@ -4006,7 +4006,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "fullSetting": {
-                    "$ref": "#/definitions/pgtype.JSON"
+                    "$ref": "#/definitions/pgtype.JSONB"
                 },
                 "id": {
                     "type": "integer"
@@ -4435,20 +4435,6 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
-                }
-            }
-        },
-        "pgtype.JSON": {
-            "type": "object",
-            "properties": {
-                "bytes": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "status": {
-                    "$ref": "#/definitions/pgtype.Status"
                 }
             }
         },
