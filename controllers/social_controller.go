@@ -74,6 +74,7 @@ func (c *SocialController) GetSocial(ctx *gin.Context) {
 // @Tags socials
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param social body models.Social true "Social"
 // @Success 201 {object} models.Social
 // @Failure 400 {object} map[string]string
@@ -105,6 +106,7 @@ func (c *SocialController) CreateSocial(ctx *gin.Context) {
 // @Tags socials
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param id path int true "Social ID"
 // @Param social body models.Social true "Social"
 // @Success 200 {object} models.Social
@@ -145,6 +147,7 @@ func (c *SocialController) UpdateSocial(ctx *gin.Context) {
 // @Tags socials
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param id path int true "Social ID"
 // @Success 204
 // @Failure 400,404 {object} map[string]string

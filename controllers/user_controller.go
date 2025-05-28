@@ -76,6 +76,7 @@ func (c *UserController) GetUser(ctx *gin.Context) {
 // @Tags users
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param user body models.UserRegister true "User data"
 // @Success 201 {object} models.User
 // @Failure 400 {object} map[string]string
@@ -105,6 +106,7 @@ func (c *UserController) CreateUser(ctx *gin.Context) {
 // @Tags users
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param id path string true "User ID"
 // @Param user body models.User true "User Info"
 // @Success 200 {object} map[string]string
@@ -146,6 +148,7 @@ func (c *UserController) UpdateUser(ctx *gin.Context) {
 // @Tags users
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param id path string true "User ID"
 // @Param passwords body map[string]string true "Old and New Passwords"
 // @Success 200 {object} map[string]string
@@ -191,6 +194,7 @@ func (c *UserController) UpdatePassword(ctx *gin.Context) {
 // @Tags users
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param id path string true "User ID"
 // @Success 200 {object} map[string]string
 // @Failure 400,404 {object} map[string]string
@@ -223,6 +227,7 @@ func (c *UserController) DeleteUser(ctx *gin.Context) {
 // @Tags users
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param id path string true "User ID"
 // @Success 200 {object} models.UserProfile
 // @Failure 400,404 {object} map[string]string

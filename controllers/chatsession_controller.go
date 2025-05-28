@@ -137,6 +137,7 @@ func (c *ChatSessionController) GetJudgeChatSessions(ctx *gin.Context) {
 // @Tags chat_sessions
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param chat_session body models.ChatSession true "Chat Session"
 // @Success 201 {object} models.ChatSession
 // @Failure 400 {object} map[string]string
@@ -168,6 +169,7 @@ func (c *ChatSessionController) CreateChatSession(ctx *gin.Context) {
 // @Tags chat_sessions
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param id path int true "Chat Session ID"
 // @Param chat_session body models.ChatSession true "Chat Session"
 // @Success 200 {object} models.ChatSession
@@ -209,6 +211,7 @@ func (c *ChatSessionController) UpdateChatSession(ctx *gin.Context) {
 // @Tags chat_sessions
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param id path int true "Chat Session ID"
 // @Param chat_history body interface{} true "Chat History"
 // @Success 200 {object} map[string]string
@@ -253,6 +256,7 @@ func (c *ChatSessionController) UpdateChatHistory(ctx *gin.Context) {
 // @Tags chat_sessions
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param id path int true "Chat Session ID"
 // @Param title body string true "Title"
 // @Success 200 {object} map[string]string
@@ -297,6 +301,7 @@ func (c *ChatSessionController) UpdateTitle(ctx *gin.Context) {
 // @Tags chat_sessions
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param id path int true "Chat Session ID"
 // @Success 200 {object} map[string]string
 // @Failure 400,404 {object} map[string]string

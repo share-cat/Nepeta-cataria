@@ -68,6 +68,7 @@ func (c *AchievementController) GetAchievement(ctx *gin.Context) {
 // @Tags achievements
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param achievement body models.Achievement true "Achievement"
 // @Success 201 {object} models.Achievement
 // @Failure 400 {object} map[string]string
@@ -94,6 +95,7 @@ func (c *AchievementController) CreateAchievement(ctx *gin.Context) {
 // @Tags achievements
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param achievement body models.Achievement true "Achievement"
 // @Success 200 {object} models.Achievement
 // @Failure 400,404 {object} map[string]string
@@ -121,6 +123,7 @@ func (c *AchievementController) UpdateAchievement(ctx *gin.Context) {
 // @Tags achievements
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param id path int true "Achievement ID"
 // @Success 204
 // @Failure 400,404 {object} map[string]string

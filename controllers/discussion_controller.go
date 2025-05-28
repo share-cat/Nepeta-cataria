@@ -171,6 +171,7 @@ func (c *DiscussionController) GetChildDiscussions(ctx *gin.Context) {
 // @Tags discussions
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param discussion body models.Discussion true "Discussion"
 // @Success 201 {object} models.Discussion
 // @Failure 400 {object} map[string]string
@@ -207,6 +208,7 @@ func (c *DiscussionController) CreateDiscussion(ctx *gin.Context) {
 // @Tags discussions
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param id path int true "Discussion ID"
 // @Param discussion body models.Discussion true "Discussion"
 // @Success 200 {object} models.Discussion
@@ -248,6 +250,7 @@ func (c *DiscussionController) UpdateDiscussion(ctx *gin.Context) {
 // @Tags discussions
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param id path int true "Discussion ID"
 // @Success 200 {object} map[string]string
 // @Failure 400,404 {object} map[string]string

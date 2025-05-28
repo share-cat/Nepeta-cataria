@@ -465,6 +465,9 @@ definitions:
     type: object
 info:
   contact: {}
+  description: Share Cat Nepeta Cataria API Documentation
+  title: Share Cat Nepeta Cataria API
+  version: "1.0"
 paths:
   /achievements:
     get:
@@ -519,6 +522,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 創建新成就
       tags:
       - achievements
@@ -558,6 +563,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 更新成就
       tags:
       - achievements
@@ -595,6 +602,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 刪除成就
       tags:
       - achievements
@@ -735,6 +744,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 創建新聊天會話
       tags:
       - chat_sessions
@@ -770,6 +781,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 刪除聊天會話
       tags:
       - chat_sessions
@@ -840,6 +853,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 更新聊天會話
       tags:
       - chat_sessions
@@ -880,6 +895,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 更新聊天歷史
       tags:
       - chat_sessions
@@ -921,6 +938,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 更新標題
       tags:
       - chat_sessions
@@ -1125,6 +1144,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 創建新討論
       tags:
       - discussions
@@ -1160,6 +1181,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 刪除討論
       tags:
       - discussions
@@ -1230,6 +1253,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 更新討論
       tags:
       - discussions
@@ -1372,6 +1397,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 創建新題目
       tags:
       - judges
@@ -1407,6 +1434,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 刪除題目
       tags:
       - judges
@@ -1473,6 +1502,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 更新題目
       tags:
       - judges
@@ -1996,6 +2027,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 創建社交欄位
       tags:
       - socials
@@ -2027,6 +2060,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 刪除社交欄位
       tags:
       - socials
@@ -2097,6 +2132,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 更新社交欄位
       tags:
       - socials
@@ -2141,6 +2178,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 提交新答案
       tags:
       - solutions
@@ -2176,6 +2215,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 刪除答案
       tags:
       - solutions
@@ -2243,6 +2284,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 更新答案結果
       tags:
       - solutions
@@ -2482,6 +2525,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 創建用戶profile
       tags:
       - userProfiles
@@ -2517,6 +2562,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 刪除用戶profile
       tags:
       - userProfiles
@@ -2593,6 +2640,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 更新用戶profile
       tags:
       - userProfiles
@@ -2640,6 +2689,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 更新用戶profile的頭像URL
       tags:
       - userProfiles
@@ -2717,6 +2768,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 創建新用戶
       tags:
       - users
@@ -2752,6 +2805,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 刪除用戶
       tags:
       - users
@@ -2818,6 +2873,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 更新用戶
       tags:
       - users
@@ -2896,6 +2953,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 更新用戶密碼
       tags:
       - users
@@ -2929,6 +2988,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
       summary: 獲取用戶資料
       tags:
       - users

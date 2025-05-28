@@ -107,6 +107,7 @@ func (c *UserProfileController) GetUserProfileByUserID(ctx *gin.Context) {
 // @Tags userProfiles
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param userProfile body models.UserProfile true "User Profile"
 // @Success 201 {object} models.UserProfile
 // @Failure 400 {object} map[string]string
@@ -139,6 +140,7 @@ func (c *UserProfileController) CreateUserProfile(ctx *gin.Context) {
 // @Tags userProfiles
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param id path string true "User Profile ID"
 // @Param userProfile body models.UserProfile true "User Profile"
 // @Success 200 {object} models.UserProfile
@@ -182,6 +184,7 @@ func (c *UserProfileController) UpdateUserProfile(ctx *gin.Context) {
 // @Tags userProfiles
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param id path string true "User Profile ID"
 // @Success 200 {object} map[string]string
 // @Failure 404 {object} map[string]string
@@ -213,6 +216,7 @@ func (c *UserProfileController) DeleteUserProfile(ctx *gin.Context) {
 // @Tags userProfiles
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param id path string true "User ID"
 // @Param avatarURL body string true "Avatar URL"
 // @Success 200 {object} map[string]string

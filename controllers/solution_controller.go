@@ -92,6 +92,7 @@ func (c *SolutionController) GetSolution(ctx *gin.Context) {
 // @Tags solutions
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param solution body models.Solution true "Solution Info"
 // @Success 201 {object} models.Solution
 // @Failure 400 {object} map[string]string
@@ -129,6 +130,7 @@ func (c *SolutionController) SubmitSolution(ctx *gin.Context) {
 // @Tags solutions
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param id path string true "Solution ID"
 // @Param result body object true "Solution Result"
 // @Success 200 {object} map[string]string
@@ -183,6 +185,7 @@ func (c *SolutionController) UpdateSolutionResult(ctx *gin.Context) {
 // @Tags solutions
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param id path string true "Solution ID"
 // @Success 200 {object} map[string]string
 // @Failure 400,404 {object} map[string]string

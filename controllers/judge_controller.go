@@ -88,6 +88,7 @@ func (c *JudgeController) GetJudge(ctx *gin.Context) {
 // @Tags judges
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param judge body models.Judge true "Judge Info"
 // @Success 201 {object} models.Judge
 // @Failure 400 {object} map[string]string
@@ -127,6 +128,7 @@ func (c *JudgeController) CreateJudge(ctx *gin.Context) {
 // @Tags judges
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param id path string true "Judge ID"
 // @Param judge body models.Judge true "Judge Info"
 // @Success 200 {object} map[string]string
@@ -168,6 +170,7 @@ func (c *JudgeController) UpdateJudge(ctx *gin.Context) {
 // @Tags judges
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param id path string true "Judge ID"
 // @Success 200 {object} map[string]string
 // @Failure 400,404 {object} map[string]string
