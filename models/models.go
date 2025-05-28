@@ -120,8 +120,8 @@ type User struct {
 type UserProfile struct {
 	// 使用者個人資料
 	gorm.Model
-	UserID    int `gorm:"primaryKey"`
-	SchoolID  int
+	UserID    int `gorm:"not null;uniqueIndex"`
+	SchoolID  *int
 	SocialID  int    `gorm:"not null"`
 	AvatarURL string `gorm:"type:varchar(255)"`
 

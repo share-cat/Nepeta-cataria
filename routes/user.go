@@ -13,6 +13,7 @@ func SetupUserRoutes(router *gin.RouterGroup, userController *controllers.UserCo
 	{
 		publicUsers.GET("", userController.GetUsers)
 		publicUsers.GET("/:id", userController.GetUser)
+		publicUsers.POST("", userController.CreateUser)
 
 		// 獲取特定用戶創建的題目
 		publicUsers.GET("/:id/judges", judgeController.GetJudgesByCreator)
@@ -23,7 +24,7 @@ func SetupUserRoutes(router *gin.RouterGroup, userController *controllers.UserCo
 
 	protectedUsers := router.Group("/users", middleware.JwtAuth())
 	{
-		protectedUsers.POST("", userController.CreateUser)
+
 		protectedUsers.PUT("/:id", userController.UpdateUser)
 		protectedUsers.PUT("/:id/password", userController.UpdatePassword)
 		protectedUsers.DELETE("/:id", userController.DeleteUser)

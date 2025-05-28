@@ -67,6 +67,7 @@ func (r *UserRepository) RegisterUser(newUser models.User) (models.User, error) 
 	userProfile := models.UserProfile{
 		UserID:    int(newUser.ID),
 		SocialID:  int(social.ID),
+		SchoolID:  nil,
 		AvatarURL: newUser.AvatarUrl,
 	}
 

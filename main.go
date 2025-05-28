@@ -63,6 +63,7 @@ func dbInit() {
 		&models.SystemConfig{},
 		&models.User{},
 		&models.UserProfile{},
+		&models.RpgProfile{},
 	)
 	if err != nil {
 		log.Fatal(err)

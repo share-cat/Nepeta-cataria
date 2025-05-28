@@ -51,7 +51,7 @@ func (s *UserProfileService) CreateUserProfile(userProfile models.UserProfile) (
 		return models.UserProfile{}, errors.New("user profile already exists")
 	}
 
-	if userProfile.SchoolID == 0 || userProfile.SocialID == 0 {
+	if userProfile.SchoolID == nil || userProfile.SocialID == 0 {
 		return models.UserProfile{}, errors.New("school ID and social ID are required")
 	}
 
