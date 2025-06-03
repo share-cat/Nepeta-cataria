@@ -7,39 +7,38 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"share-cat/Nepeta-cataria/pkg/loadjudge"
 )
 
-func GenerateMainSolutionFile(problemDir, targetLang string, config ProblemConfig) (string, error) {
+func GenerateMainSolutionFile(problemDir, targetLang string, config loadjudge.ProblemConfig) (string, error) {
 	if targetLang == "" {
-
 		if len(config.Languages) > 0 {
 			targetLang = config.Languages[0]
 		} else {
-			targetLang = Python
+			targetLang = loadjudge.Python
 			log.Printf("No target language specified and config.lang is empty, defaulting to %s", targetLang)
 		}
 	}
 	log.Printf("Generating solution file for language: %s in dir: %s", targetLang, problemDir)
 
-	sampleInPath := filepath.Join(problemDir, TestDataDir, SampleInputFile)
-	sampleOutPath := filepath.Join(problemDir, TestDataDir, SampleOutputFile)
+	sampleInPath := filepath.Join(problemDir, loadjudge.TestDataDir, loadjudge.SampleInputFile)
+	sampleOutPath := filepath.Join(problemDir, loadjudge.TestDataDir, loadjudge.SampleOutputFile)
 
-	if !FileExists(sampleInPath) {
-		files, err := filepath.Glob(filepath.Join(problemDir, TestDataDir, "*.in"))
+	if !loadjudge.FileExists(sampleInPath) {
+		files, err := filepath.Glob(filepath.Join(problemDir, loadjudge.TestDataDir, "*.in"))
 		if err != nil || len(files) == 0 {
-
-			log.Printf("No sample input ('%s') or other .in files found in %s/%s. Template will have minimal hints.", SampleInputFile, problemDir, TestDataDir)
+			log.Printf("No sample input ('%s') or other .in files found in %s/%s. Template will have minimal hints.", loadjudge.SampleInputFile, problemDir, loadjudge.TestDataDir)
 			sampleInPath = ""
 		} else {
 			sampleInPath = files[0]
 			log.Printf("Using %s as sample input.", sampleInPath)
 		}
 	}
-	if !FileExists(sampleOutPath) {
-		files, err := filepath.Glob(filepath.Join(problemDir, TestDataDir, "*.out"))
+	if !loadjudge.FileExists(sampleOutPath) {
+		files, err := filepath.Glob(filepath.Join(problemDir, loadjudge.TestDataDir, "*.out"))
 		if err != nil || len(files) == 0 {
-
-			log.Printf("No sample output ('%s') or other .out files found in %s/%s. Template will have minimal hints.", SampleOutputFile, problemDir, TestDataDir)
+			log.Printf("No sample output ('%s') or other .out files found in %s/%s. Template will have minimal hints.", loadjudge.SampleOutputFile, problemDir, loadjudge.TestDataDir)
 			sampleOutPath = ""
 		} else {
 			sampleOutPath = files[0]
@@ -50,8 +49,8 @@ func GenerateMainSolutionFile(problemDir, targetLang string, config ProblemConfi
 	var td TemplateData
 	td.ProblemName = config.Name
 
-	if sampleInPath != "" && FileExists(sampleInPath) {
-		sampleInLines, err := ReadLines(sampleInPath)
+	if sampleInPath != "" && loadjudge.FileExists(sampleInPath) {
+		sampleInLines, err := loadjudge.ReadLines(sampleInPath)
 		if err != nil {
 			log.Printf("Warning: Could not read sample input %s: %v.", sampleInPath, err)
 			td.SampleInput = fmt.Sprintf("(Could not read %s)", sampleInPath)
@@ -60,7 +59,7 @@ func GenerateMainSolutionFile(problemDir, targetLang string, config ProblemConfi
 			if len(sampleInLines) > 0 {
 				tokens := strings.Fields(sampleInLines[0])
 				for _, token := range tokens {
-					td.InferredInputTypes = append(td.InferredInputTypes, InferType(token))
+					td.InferredInputTypes = append(td.InferredInputTypes, loadjudge.InferType(token))
 				}
 			}
 		}
@@ -68,8 +67,8 @@ func GenerateMainSolutionFile(problemDir, targetLang string, config ProblemConfi
 		td.SampleInput = "(No sample input provided for template hints)"
 	}
 
-	if sampleOutPath != "" && FileExists(sampleOutPath) {
-		sampleOutLines, err := ReadLines(sampleOutPath)
+	if sampleOutPath != "" && loadjudge.FileExists(sampleOutPath) {
+		sampleOutLines, err := loadjudge.ReadLines(sampleOutPath)
 		if err != nil {
 			log.Printf("Warning: Could not read sample output %s: %v.", sampleOutPath, err)
 			td.SampleOutput = fmt.Sprintf("(Could not read %s)", sampleOutPath)
@@ -79,7 +78,7 @@ func GenerateMainSolutionFile(problemDir, targetLang string, config ProblemConfi
 			if len(sampleOutLines) > 0 {
 				outputTokens := strings.Fields(sampleOutLines[0])
 				if len(outputTokens) > 0 {
-					td.InferredOutputType = InferType(outputTokens[0])
+					td.InferredOutputType = loadjudge.InferType(outputTokens[0])
 				} else {
 					td.InferredOutputType = "string" // Empty line
 				}
@@ -101,11 +100,11 @@ func GenerateMainSolutionFile(problemDir, targetLang string, config ProblemConfi
 
 	var mainFileName string
 	switch targetLang {
-	case Python:
+	case loadjudge.Python:
 		mainFileName = "main.py"
-	case Cpp:
+	case loadjudge.Cpp:
 		mainFileName = "main.cpp"
-	case JavaScript:
+	case loadjudge.JavaScript:
 		mainFileName = "main.js"
 	default:
 		return "", fmt.Errorf("cannot determine main file name for unsupported language: %s", targetLang)
@@ -121,7 +120,7 @@ func GenerateMainSolutionFile(problemDir, targetLang string, config ProblemConfi
 	return outputFilePath, nil
 }
 
-func generateFrontendDisplayData(problemDir string, config ProblemConfig) (FrontendDisplayData, error) {
+func generateFrontendDisplayData(problemDir string, config loadjudge.ProblemConfig) (FrontendDisplayData, error) {
 	var displayData FrontendDisplayData
 	displayData.ProblemTitle = config.Name
 	displayData.ShortDescription = config.Description
@@ -136,7 +135,7 @@ func generateFrontendDisplayData(problemDir string, config ProblemConfig) (Front
 	displayData.CheckType = config.CheckType
 
 	readmePath := filepath.Join(problemDir, config.ReadmeFile)
-	if FileExists(readmePath) {
+	if loadjudge.FileExists(readmePath) {
 		readmeBytes, err := os.ReadFile(readmePath)
 		if err != nil {
 			log.Printf("Warning: Failed to read readme file at %s: %v", readmePath, err)
@@ -149,9 +148,9 @@ func generateFrontendDisplayData(problemDir string, config ProblemConfig) (Front
 		displayData.FullDescription = "(Readme file not found)"
 	}
 
-	sampleInPath := filepath.Join(problemDir, TestDataDir, SampleInputFile)
-	if !FileExists(sampleInPath) {
-		files, errGlob := filepath.Glob(filepath.Join(problemDir, TestDataDir, "*.in"))
+	sampleInPath := filepath.Join(problemDir, loadjudge.TestDataDir, loadjudge.SampleInputFile)
+	if !loadjudge.FileExists(sampleInPath) {
+		files, errGlob := filepath.Glob(filepath.Join(problemDir, loadjudge.TestDataDir, "*.in"))
 		if errGlob == nil && len(files) > 0 {
 			sampleInPath = files[0]
 		} else {
@@ -159,7 +158,7 @@ func generateFrontendDisplayData(problemDir string, config ProblemConfig) (Front
 		}
 	}
 
-	if sampleInPath != "" && FileExists(sampleInPath) {
+	if sampleInPath != "" && loadjudge.FileExists(sampleInPath) {
 		sampleInBytes, err := os.ReadFile(sampleInPath)
 		if err != nil {
 			log.Printf("Warning: Failed to read sample input from %s for display data: %v", sampleInPath, err)
@@ -173,14 +172,14 @@ func generateFrontendDisplayData(problemDir string, config ProblemConfig) (Front
 	}
 
 	sampleOutPath := ""
-	files, errGlob := filepath.Glob(filepath.Join(problemDir, TestDataDir, "*.out"))
+	files, errGlob := filepath.Glob(filepath.Join(problemDir, loadjudge.TestDataDir, "*.out"))
 	if errGlob == nil && len(files) > 0 {
 		sampleOutPath = files[0]
 	} else {
 		sampleOutPath = ""
 	}
 
-	if sampleOutPath != "" && FileExists(sampleOutPath) {
+	if sampleOutPath != "" && loadjudge.FileExists(sampleOutPath) {
 		sampleOutBytes, err := os.ReadFile(sampleOutPath)
 		if err != nil {
 			log.Printf("Warning: Failed to read sample output from %s for display data: %v", sampleOutPath, err)
@@ -197,7 +196,7 @@ func generateFrontendDisplayData(problemDir string, config ProblemConfig) (Front
 	return displayData, nil
 }
 
-func GenerateFrontendDisplayJSON(problemDir string, config ProblemConfig) (string, error) {
+func GenerateFrontendDisplayJSON(problemDir string, config loadjudge.ProblemConfig) (string, error) {
 	displayData, err := generateFrontendDisplayData(problemDir, config)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate display data: %w", err)
@@ -211,7 +210,7 @@ func GenerateFrontendDisplayJSON(problemDir string, config ProblemConfig) (strin
 	return string(jsonData), nil
 }
 
-func GenerateFrontendDisplayFile(problemDir string, config ProblemConfig) error {
+func GenerateFrontendDisplayFile(problemDir string, config loadjudge.ProblemConfig) error {
 	jsonData, err := GenerateFrontendDisplayJSON(problemDir, config)
 	if err != nil {
 		return fmt.Errorf("failed to generate display JSON: %w", err)
@@ -227,7 +226,7 @@ func GenerateFrontendDisplayFile(problemDir string, config ProblemConfig) error 
 	return nil
 }
 
-func GetFrontendDisplayJSON(problemDir string, config ProblemConfig) (FrontendDisplayData, error) {
+func GetFrontendDisplayJSON(problemDir string, config loadjudge.ProblemConfig) (FrontendDisplayData, error) {
 	displayData, err := generateFrontendDisplayData(problemDir, config)
 	if err != nil {
 		return FrontendDisplayData{}, fmt.Errorf("failed to generate display data: %w", err)
@@ -238,7 +237,7 @@ func GetFrontendDisplayJSON(problemDir string, config ProblemConfig) (FrontendDi
 
 func ScaffoldProblem(problemDir, targetLang string) error {
 	log.Printf("Scaffolding problem in directory: %s. Target language for template: %s", problemDir, targetLang)
-	config, err := LoadProblemConfig(problemDir)
+	config, err := loadjudge.LoadProblemConfig(problemDir)
 	if err != nil {
 		return fmt.Errorf("could not load problem config for %s: %w", problemDir, err)
 	}
@@ -249,7 +248,6 @@ func ScaffoldProblem(problemDir, targetLang string) error {
 			effectiveLang = config.Languages[0]
 			log.Printf("No specific language requested for template, using first from config: %s", effectiveLang)
 		} else {
-
 			return fmt.Errorf("no target language specified for template generation and problem config 'lang' is empty for %s", problemDir)
 		}
 	}

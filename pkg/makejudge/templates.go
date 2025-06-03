@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 	"text/template"
+
+	"share-cat/Nepeta-cataria/pkg/loadjudge"
 )
 
 var funcMap = template.FuncMap{
@@ -64,27 +66,10 @@ const javascriptMainTemplateStr = `
 
 `
 
-func getTemplate(language string) (*template.Template, error) {
-	var tplStr string
-	templateName := "mainSolution"
-	switch language {
-	case Python:
-		tplStr = pythonMainTemplateStr
-	case Cpp:
-		tplStr = cppMainTemplateStr
-		templateName = "cppSolution"
-	case JavaScript:
-		tplStr = javascriptMainTemplateStr
-	default:
-		return nil, fmt.Errorf("unsupported language for template: %s", language)
-	}
-	return template.New(templateName).Funcs(funcMap).Parse(tplStr)
-}
-
 func fillTemplateDataForJudge(td *TemplateData, language string, types []string) {
 	td.UserCodePlaceholder = "Replace this with your solution."
 	switch language {
-	case Python:
+	case loadjudge.Python:
 		if len(types) > 0 {
 			var params []string
 			for i, typ := range types {
@@ -130,7 +115,7 @@ func fillTemplateDataForJudge(td *TemplateData, language string, types []string)
 		        # traceback.print_exc(file=sys.stderr) # Useful for user debugging locally
 		        sys.exit(1) # Non-zero exit code for error
 		`
-	case Cpp:
+	case loadjudge.Cpp:
 		if len(types) > 0 {
 			var params []string
 			for i, typ := range types {
@@ -183,7 +168,7 @@ int main() {
     return 0;
 }
 `
-	case JavaScript:
+	case loadjudge.JavaScript:
 		if len(types) > 0 {
 			var jsDocParams []string
 			var params []string
@@ -239,6 +224,23 @@ function run() {
 run();
 `
 	}
+}
+
+func getTemplate(language string) (*template.Template, error) {
+	var tplStr string
+	templateName := "mainSolution"
+	switch language {
+	case loadjudge.Python:
+		tplStr = pythonMainTemplateStr
+	case loadjudge.Cpp:
+		tplStr = cppMainTemplateStr
+		templateName = "cppSolution"
+	case loadjudge.JavaScript:
+		tplStr = javascriptMainTemplateStr
+	default:
+		return nil, fmt.Errorf("unsupported language for template: %s", language)
+	}
+	return template.New(templateName).Funcs(funcMap).Parse(tplStr)
 }
 
 func executeCodeTemplate(language string, data TemplateData) (string, error) {

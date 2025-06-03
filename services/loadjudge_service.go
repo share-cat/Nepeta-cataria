@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"share-cat/Nepeta-cataria/models"
+	"share-cat/Nepeta-cataria/pkg/loadjudge"
 	"share-cat/Nepeta-cataria/pkg/makejudge"
 	"share-cat/Nepeta-cataria/repositories"
 	"strings"
@@ -169,22 +170,22 @@ func (s *LoadJudgeService) extractSingleFile(file *zip.File, destDir string) err
 	return err
 }
 
-func (s *LoadJudgeService) loadProblemConfig(extractDir string) (makejudge.ProblemConfig, string, error) {
+func (s *LoadJudgeService) loadProblemConfig(extractDir string) (loadjudge.ProblemConfig, string, error) {
 
 	configPath := filepath.Join(extractDir, "config.yaml")
 	configDir := extractDir
 
-	if !makejudge.FileExists(configPath) {
+	if !loadjudge.FileExists(configPath) {
 
 		entries, err := os.ReadDir(extractDir)
 		if err != nil {
-			return makejudge.ProblemConfig{}, "", fmt.Errorf("讀取目錄失敗: %w", err)
+			return loadjudge.ProblemConfig{}, "", fmt.Errorf("讀取目錄失敗: %w", err)
 		}
 
 		for _, entry := range entries {
 			if entry.IsDir() {
 				subConfigPath := filepath.Join(extractDir, entry.Name(), "config.yaml")
-				if makejudge.FileExists(subConfigPath) {
+				if loadjudge.FileExists(subConfigPath) {
 					configPath = subConfigPath
 					configDir = filepath.Join(extractDir, entry.Name())
 					break
@@ -193,23 +194,23 @@ func (s *LoadJudgeService) loadProblemConfig(extractDir string) (makejudge.Probl
 		}
 	}
 
-	if !makejudge.FileExists(configPath) {
-		return makejudge.ProblemConfig{}, "", fmt.Errorf("找不到 config.yaml 檔案")
+	if !loadjudge.FileExists(configPath) {
+		return loadjudge.ProblemConfig{}, "", fmt.Errorf("找不到 config.yaml 檔案")
 	}
 
-	config, err := makejudge.LoadProblemConfig(configDir)
+	config, err := loadjudge.LoadProblemConfig(configDir)
 	if err != nil {
-		return makejudge.ProblemConfig{}, "", fmt.Errorf("載入配置失敗: %w", err)
+		return loadjudge.ProblemConfig{}, "", fmt.Errorf("載入配置失敗: %w", err)
 	}
 
 	return config, configDir, nil
 }
 
-func (s *LoadJudgeService) createJudgeRecord(config makejudge.ProblemConfig, creatorID int, configDir string) (*models.Judge, error) {
+func (s *LoadJudgeService) createJudgeRecord(config loadjudge.ProblemConfig, creatorID int, configDir string) (*models.Judge, error) {
 
 	readme := ""
 	readmePath := filepath.Join(configDir, config.ReadmeFile)
-	if config.ReadmeFile != "" && makejudge.FileExists(readmePath) {
+	if config.ReadmeFile != "" && loadjudge.FileExists(readmePath) {
 		readmeBytes, err := os.ReadFile(readmePath)
 		if err != nil {
 			log.Printf("警告: 讀取 README 檔案失敗: %v", err)
@@ -226,7 +227,7 @@ func (s *LoadJudgeService) createJudgeRecord(config makejudge.ProblemConfig, cre
 	fullSetting := map[string]interface{}{
 		"config":         config,
 		"problem_path":   configDir,
-		"test_data_path": filepath.Join(configDir, makejudge.TestDataDir),
+		"test_data_path": filepath.Join(configDir, loadjudge.TestDataDir),
 		"checker_file":   config.Checker.File,
 		"checker_lang":   config.Checker.Language,
 		"fullsetting":    json.RawMessage(frontendJSON),

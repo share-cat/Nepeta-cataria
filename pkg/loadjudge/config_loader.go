@@ -1,4 +1,4 @@
-package makejudge
+package loadjudge
 
 import (
 	"fmt"
@@ -10,7 +10,11 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const ConfigFileName = "config.yaml"
+const (
+	Python     = "python"
+	Cpp        = "cpp"
+	JavaScript = "javascript"
+)
 
 func LoadProblemConfig(problemDir string) (ProblemConfig, error) {
 	var config ProblemConfig
@@ -73,4 +77,20 @@ func LoadProblemConfig(problemDir string) (ProblemConfig, error) {
 	}
 
 	return config, nil
+}
+
+func GetLanguageFromExtension(filename string) string {
+	ext := strings.ToLower(filepath.Ext(filename))
+	switch ext {
+	case ".py":
+		return "python"
+	case ".cpp", ".cc", ".cxx":
+		return "cpp"
+	case ".java":
+		return "java"
+	case ".js":
+		return "javascript"
+	default:
+		return ""
+	}
 }
