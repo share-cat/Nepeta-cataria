@@ -22,80 +22,43 @@ func GenerateMainSolutionFile(problemDir, targetLang string, config loadjudge.Pr
 	}
 	log.Printf("Generating solution file for language: %s in dir: %s", targetLang, problemDir)
 
-	sampleInPath := filepath.Join(problemDir, loadjudge.TestDataDir, loadjudge.SampleInputFile)
-	sampleOutPath := filepath.Join(problemDir, loadjudge.TestDataDir, loadjudge.SampleOutputFile)
-
-	if !loadjudge.FileExists(sampleInPath) {
-		files, err := filepath.Glob(filepath.Join(problemDir, loadjudge.TestDataDir, "*.in"))
-		if err != nil || len(files) == 0 {
-			log.Printf("No sample input ('%s') or other .in files found in %s/%s. Template will have minimal hints.", loadjudge.SampleInputFile, problemDir, loadjudge.TestDataDir)
-			sampleInPath = ""
-		} else {
-			sampleInPath = files[0]
-			log.Printf("Using %s as sample input.", sampleInPath)
-		}
-	}
-	if !loadjudge.FileExists(sampleOutPath) {
-		files, err := filepath.Glob(filepath.Join(problemDir, loadjudge.TestDataDir, "*.out"))
-		if err != nil || len(files) == 0 {
-			log.Printf("No sample output ('%s') or other .out files found in %s/%s. Template will have minimal hints.", loadjudge.SampleOutputFile, problemDir, loadjudge.TestDataDir)
-			sampleOutPath = ""
-		} else {
-			sampleOutPath = files[0]
-			log.Printf("Using %s as sample output.", sampleOutPath)
-		}
+	sampleInput, sampleOutput, err := loadjudge.GetSampleInputOutput(problemDir)
+	if err != nil {
+		log.Printf("Warning: Could not get sample input/output: %v", err)
+		sampleInput = "(No sample input provided for template hints)"
+		sampleOutput = "(No sample output provided for template hints)"
 	}
 
 	var td TemplateData
 	td.ProblemName = config.Name
+	td.SampleInput = sampleInput
+	td.SampleOutput = sampleOutput
 
-	if sampleInPath != "" && loadjudge.FileExists(sampleInPath) {
-		sampleInLines, err := loadjudge.ReadLines(sampleInPath)
+	// 嘗試從 testdata.yaml 載入類型信息
+	testData, testDataErr := loadjudge.LoadTestDataConfig(problemDir)
+	var inputType, outputType *loadjudge.TypeInfo
+
+	if testDataErr == nil {
+		log.Printf("Using type information from testdata.yaml")
+		inputType, outputType, err = loadjudge.ParseTestDataTypes(testData)
 		if err != nil {
-			log.Printf("Warning: Could not read sample input %s: %v.", sampleInPath, err)
-			td.SampleInput = fmt.Sprintf("(Could not read %s)", sampleInPath)
+			log.Printf("Warning: Failed to parse types from testdata.yaml: %v", err)
+			log.Printf("Falling back to type inference from sample data")
 		} else {
-			td.SampleInput = strings.Join(sampleInLines, "\n")
-			if len(sampleInLines) > 0 {
-				tokens := strings.Fields(sampleInLines[0])
-				for _, token := range tokens {
-					td.InferredInputTypes = append(td.InferredInputTypes, loadjudge.InferType(token))
-				}
-			}
+			td.InputType = inputType
+			td.OutputType = outputType
 		}
-	} else {
-		td.SampleInput = "(No sample input provided for template hints)"
 	}
 
-	if sampleOutPath != "" && loadjudge.FileExists(sampleOutPath) {
-		sampleOutLines, err := loadjudge.ReadLines(sampleOutPath)
-		if err != nil {
-			log.Printf("Warning: Could not read sample output %s: %v.", sampleOutPath, err)
-			td.SampleOutput = fmt.Sprintf("(Could not read %s)", sampleOutPath)
-			td.InferredOutputType = "string"
-		} else {
-			td.SampleOutput = strings.Join(sampleOutLines, "\n")
-			if len(sampleOutLines) > 0 {
-				outputTokens := strings.Fields(sampleOutLines[0])
-				if len(outputTokens) > 0 {
-					td.InferredOutputType = loadjudge.InferType(outputTokens[0])
-				} else {
-					td.InferredOutputType = "string" // Empty line
-				}
-			} else {
-				td.InferredOutputType = "string" // Empty file
-			}
-		}
-	} else {
-		td.SampleOutput = "(No sample output provided for template hints)"
-		td.InferredOutputType = "string"
-	}
-
-	fillTemplateDataForJudge(&td, targetLang, td.InferredInputTypes)
-
-	generatedCode, err := executeCodeTemplate(targetLang, td)
+	var generatedCode string
+	err = fillTemplateDataWithTypes(&td, targetLang, td.InputType, td.OutputType)
 	if err != nil {
-		return "", fmt.Errorf("failed to generate code from template for %s: %w", targetLang, err)
+		return "", fmt.Errorf("failed to fill template data with types: %w", err)
+	}
+
+	generatedCode, err = executeCodeTemplateWithTypes(targetLang, td)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate code from enhanced template for %s: %w", targetLang, err)
 	}
 
 	var mainFileName string
@@ -147,49 +110,24 @@ func generateFrontendDisplayData(problemDir string, config loadjudge.ProblemConf
 		log.Printf("Warning: Readme file '%s' not found at %s", config.ReadmeFile, readmePath)
 		displayData.FullDescription = "(Readme file not found)"
 	}
+	testData, err := loadjudge.LoadTestDataConfig(problemDir)
+	if err == nil {
+		log.Printf("Using test data from testdata.yaml for display")
+		displayData.SampleInput = strings.TrimSpace(testData.Sample.Input)
+		displayData.SampleOutput = strings.TrimSpace(testData.Sample.Output)
+		displayData.TestCases = testData.TestCases
 
-	sampleInPath := filepath.Join(problemDir, loadjudge.TestDataDir, loadjudge.SampleInputFile)
-	if !loadjudge.FileExists(sampleInPath) {
-		files, errGlob := filepath.Glob(filepath.Join(problemDir, loadjudge.TestDataDir, "*.in"))
-		if errGlob == nil && len(files) > 0 {
-			sampleInPath = files[0]
-		} else {
-			sampleInPath = ""
+		displayData.InputFormat = struct {
+			Type string `json:"type"`
+		}{
+			Type: testData.TestConfig.InputFormat.Type,
 		}
-	}
 
-	if sampleInPath != "" && loadjudge.FileExists(sampleInPath) {
-		sampleInBytes, err := os.ReadFile(sampleInPath)
-		if err != nil {
-			log.Printf("Warning: Failed to read sample input from %s for display data: %v", sampleInPath, err)
-			displayData.SampleInput = "(Could not load sample input)"
-		} else {
-			displayData.SampleInput = string(sampleInBytes)
+		displayData.OutputFormat = struct {
+			Type string `json:"type"`
+		}{
+			Type: testData.TestConfig.OutputFormat.Type,
 		}
-	} else {
-		log.Printf("Warning: No sample input file found for display data in %s", problemDir)
-		displayData.SampleInput = "(No sample input available)"
-	}
-
-	sampleOutPath := ""
-	files, errGlob := filepath.Glob(filepath.Join(problemDir, loadjudge.TestDataDir, "*.out"))
-	if errGlob == nil && len(files) > 0 {
-		sampleOutPath = files[0]
-	} else {
-		sampleOutPath = ""
-	}
-
-	if sampleOutPath != "" && loadjudge.FileExists(sampleOutPath) {
-		sampleOutBytes, err := os.ReadFile(sampleOutPath)
-		if err != nil {
-			log.Printf("Warning: Failed to read sample output from %s for display data: %v", sampleOutPath, err)
-			displayData.SampleOutput = "(Could not load sample output)"
-		} else {
-			displayData.SampleOutput = string(sampleOutBytes)
-		}
-	} else {
-		log.Printf("Warning: No corresponding sample output file found for display data (tried %s)", sampleOutPath)
-		displayData.SampleOutput = "(No sample output available)"
 	}
 
 	log.Printf("Successfully generated display data for problem: %s", config.Name)

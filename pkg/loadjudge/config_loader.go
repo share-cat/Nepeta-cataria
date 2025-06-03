@@ -79,18 +79,34 @@ func LoadProblemConfig(problemDir string) (ProblemConfig, error) {
 	return config, nil
 }
 
-func GetLanguageFromExtension(filename string) string {
-	ext := strings.ToLower(filepath.Ext(filename))
-	switch ext {
-	case ".py":
-		return "python"
-	case ".cpp", ".cc", ".cxx":
-		return "cpp"
-	case ".java":
-		return "java"
-	case ".js":
-		return "javascript"
-	default:
-		return ""
+func LoadTestDataConfig(problemDir string) (TestDataConfig, error) {
+	var testData TestDataConfig
+	testDataPath := filepath.Join(problemDir, TestDataYamlFile)
+
+	if !FileExists(testDataPath) {
+		return testData, fmt.Errorf("testdata.yaml not found at %s", testDataPath)
 	}
+
+	data, err := os.ReadFile(testDataPath)
+	if err != nil {
+		return testData, fmt.Errorf("failed to read testdata file %s: %w", testDataPath, err)
+	}
+
+	err = yaml.Unmarshal(data, &testData)
+	if err != nil {
+		return testData, fmt.Errorf("failed to unmarshal testdata YAML from %s: %w", testDataPath, err)
+	}
+
+	log.Printf("Successfully loaded test data config with %d test cases", len(testData.TestCases))
+	return testData, nil
+}
+
+func GetSampleInputOutput(problemDir string) (string, string, error) {
+	testData, err := LoadTestDataConfig(problemDir)
+	if err != nil {
+		log.Printf("Failed to load testdata.yaml: %v", err)
+	}
+	log.Printf("Using sample data from testdata.yaml")
+	return strings.TrimSpace(testData.Sample.Input), strings.TrimSpace(testData.Sample.Output), nil
+
 }

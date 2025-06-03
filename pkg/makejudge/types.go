@@ -23,14 +23,10 @@ type FrontendDisplayData struct {
 	CheckType          string               `json:"checkType,omitempty"`
 	TestCases          []loadjudge.TestCase `json:"testCases,omitempty"`
 	InputFormat        struct {
-		Type        string `json:"type"`
-		Description string `json:"description"`
-		Example     string `json:"example"`
+		Type string `json:"type"`
 	} `json:"inputFormat,omitempty"`
 	OutputFormat struct {
-		Type        string `json:"type"`
-		Description string `json:"description"`
-		Example     string `json:"example"`
+		Type string `json:"type"`
 	} `json:"outputFormat,omitempty"`
 }
 
@@ -44,6 +40,10 @@ type TemplateData struct {
 	FunctionSignature    string
 	ExecutionBoilerplate string
 	UserCodePlaceholder  string
+	RequiredImports      string
+	RequiredIncludes     string
+	InputType            *loadjudge.TypeInfo
+	OutputType           *loadjudge.TypeInfo
 }
 
 type RunnerTemplateData struct {
