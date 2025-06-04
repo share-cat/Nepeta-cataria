@@ -219,7 +219,7 @@ func (s *LoadJudgeService) createJudgeRecord(config loadjudge.ProblemConfig, cre
 		}
 	}
 
-	frontendJSON, err := makejudge.GenerateFrontendDisplayJSON(configDir, config)
+	settingJSON, err := makejudge.GenerateSettingDataJSON(configDir, config)
 	if err != nil {
 		return nil, fmt.Errorf("獲取JSON 失敗: %w", err)
 	}
@@ -230,7 +230,7 @@ func (s *LoadJudgeService) createJudgeRecord(config loadjudge.ProblemConfig, cre
 		"test_data_path": filepath.Join(configDir, loadjudge.TestDataDir),
 		"checker_file":   config.Checker.File,
 		"checker_lang":   config.Checker.Language,
-		"fullsetting":    json.RawMessage(frontendJSON),
+		"fullsetting":    json.RawMessage(settingJSON),
 		"created_at":     time.Now().Unix(),
 	}
 

@@ -6,7 +6,7 @@ const (
 	DisplayFileName = "display.json"
 )
 
-type FrontendDisplayData struct {
+type SettingData struct {
 	ProblemTitle       string               `json:"problemTitle"`
 	ShortDescription   string               `json:"shortDescription"`
 	FullDescription    string               `json:"fullDescription"`
@@ -44,9 +44,4 @@ type TemplateData struct {
 	RequiredIncludes     string
 	InputType            *loadjudge.TypeInfo
 	OutputType           *loadjudge.TypeInfo
-}
-
-type RunnerTemplateData struct {
-	UserSourceFile        string // 用戶原始碼文件的基本名稱 (例如 "solution.py", "user_code.cpp")
-	UserModuleOrClassName string // 例如 "solution" (用於 Python import)
 }

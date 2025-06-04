@@ -65,7 +65,7 @@ var containerTypeMap = map[string]map[string]string{
 		"cpp_include":         "<set>",
 	},
 	"dict": {
-		"python_template":     "Dict[str, %s]", // 簡化為 str key
+		"python_template":     "Dict[str, %s]",
 		"cpp_template":        "std::map<std::string, %s>",
 		"javascript_template": "Record<string, %s>",
 		"python_import":       "from typing import Dict",

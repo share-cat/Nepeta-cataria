@@ -83,93 +83,93 @@ func GenerateMainSolutionFile(problemDir, targetLang string, config loadjudge.Pr
 	return outputFilePath, nil
 }
 
-func generateFrontendDisplayData(problemDir string, config loadjudge.ProblemConfig) (FrontendDisplayData, error) {
-	var displayData FrontendDisplayData
-	displayData.ProblemTitle = config.Name
-	displayData.ShortDescription = config.Description
-	displayData.TimeLimitSec = config.TimeLimitSec
-	displayData.MemoryLimitMb = config.MemoryLimitMb
-	displayData.SupportedLanguages = config.Languages
-	displayData.DifficultyLevel = config.Level
-	displayData.Tags = config.Tags
-	displayData.ProblemType = config.Type
-	displayData.CheckerFile = config.Checker.File
-	displayData.CheckerLanguage = config.Checker.Language
-	displayData.CheckType = config.CheckType
+func generateSettingData(problemDir string, config loadjudge.ProblemConfig) (SettingData, error) {
+	var settingData SettingData
+	settingData.ProblemTitle = config.Name
+	settingData.ShortDescription = config.Description
+	settingData.TimeLimitSec = config.TimeLimitSec
+	settingData.MemoryLimitMb = config.MemoryLimitMb
+	settingData.SupportedLanguages = config.Languages
+	settingData.DifficultyLevel = config.Level
+	settingData.Tags = config.Tags
+	settingData.ProblemType = config.Type
+	settingData.CheckerFile = config.Checker.File
+	settingData.CheckerLanguage = config.Checker.Language
+	settingData.CheckType = config.CheckType
 
 	readmePath := filepath.Join(problemDir, config.ReadmeFile)
 	if loadjudge.FileExists(readmePath) {
 		readmeBytes, err := os.ReadFile(readmePath)
 		if err != nil {
 			log.Printf("Warning: Failed to read readme file at %s: %v", readmePath, err)
-			displayData.FullDescription = fmt.Sprintf("(Could not load %s)", config.ReadmeFile)
+			settingData.FullDescription = fmt.Sprintf("(Could not load %s)", config.ReadmeFile)
 		} else {
-			displayData.FullDescription = string(readmeBytes)
+			settingData.FullDescription = string(readmeBytes)
 		}
 	} else {
 		log.Printf("Warning: Readme file '%s' not found at %s", config.ReadmeFile, readmePath)
-		displayData.FullDescription = "(Readme file not found)"
+		settingData.FullDescription = "(Readme file not found)"
 	}
 	testData, err := loadjudge.LoadTestDataConfig(problemDir)
 	if err == nil {
 		log.Printf("Using test data from testdata.yaml for display")
-		displayData.SampleInput = strings.TrimSpace(testData.Sample.Input)
-		displayData.SampleOutput = strings.TrimSpace(testData.Sample.Output)
-		displayData.TestCases = testData.TestCases
+		settingData.SampleInput = strings.TrimSpace(testData.Sample.Input)
+		settingData.SampleOutput = strings.TrimSpace(testData.Sample.Output)
+		settingData.TestCases = testData.TestCases
 
-		displayData.InputFormat = struct {
+		settingData.InputFormat = struct {
 			Type string `json:"type"`
 		}{
 			Type: testData.TestConfig.InputFormat.Type,
 		}
 
-		displayData.OutputFormat = struct {
+		settingData.OutputFormat = struct {
 			Type string `json:"type"`
 		}{
 			Type: testData.TestConfig.OutputFormat.Type,
 		}
 	}
 
-	log.Printf("Successfully generated display data for problem: %s", config.Name)
-	return displayData, nil
+	log.Printf("Successfully generated Setting Data for problem: %s", config.Name)
+	return settingData, nil
 }
 
-func GenerateFrontendDisplayJSON(problemDir string, config loadjudge.ProblemConfig) (string, error) {
-	displayData, err := generateFrontendDisplayData(problemDir, config)
+func GenerateSettingDataJSON(problemDir string, config loadjudge.ProblemConfig) (string, error) {
+	settingData, err := generateSettingData(problemDir, config)
 	if err != nil {
-		return "", fmt.Errorf("failed to generate display data: %w", err)
+		return "", fmt.Errorf("failed to generate Setting Data: %w", err)
 	}
 
-	jsonData, err := json.MarshalIndent(displayData, "", "  ")
+	jsonData, err := json.MarshalIndent(settingData, "", "  ")
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal display data to JSON: %w", err)
+		return "", fmt.Errorf("failed to marshal Setting Data to JSON: %w", err)
 	}
 
 	return string(jsonData), nil
 }
 
-func GenerateFrontendDisplayFile(problemDir string, config loadjudge.ProblemConfig) error {
-	jsonData, err := GenerateFrontendDisplayJSON(problemDir, config)
+func GenerateSettingDataFile(problemDir string, config loadjudge.ProblemConfig) error {
+	jsonData, err := GenerateSettingDataJSON(problemDir, config)
 	if err != nil {
-		return fmt.Errorf("failed to generate display JSON: %w", err)
+		return fmt.Errorf("failed to generate setting JSON: %w", err)
 	}
 
-	displayFilePath := filepath.Join(problemDir, DisplayFileName)
-	err = WriteStringToFile(displayFilePath, jsonData)
+	settingFilePath := filepath.Join(problemDir, DisplayFileName)
+	err = WriteStringToFile(settingFilePath, jsonData)
 	if err != nil {
-		return fmt.Errorf("failed to write display file to %s: %w", displayFilePath, err)
+		return fmt.Errorf("failed to write setting file to %s: %w", settingFilePath, err)
 	}
 
-	log.Printf("Successfully generated display file: %s", displayFilePath)
+	log.Printf("Successfully generated setting file: %s", settingFilePath)
 	return nil
 }
 
-func GetFrontendDisplayJSON(problemDir string, config loadjudge.ProblemConfig) (FrontendDisplayData, error) {
-	displayData, err := generateFrontendDisplayData(problemDir, config)
+func GetSettingDataJSON(problemDir string, config loadjudge.ProblemConfig) (SettingData, error) {
+	settingData, err := generateSettingData(problemDir, config)
 	if err != nil {
-		return FrontendDisplayData{}, fmt.Errorf("failed to generate display data: %w", err)
+		return SettingData{}, fmt.Errorf("failed to generate Setting Data: %w", err)
 	}
-	return displayData, nil
+	return settingData, nil
 
 }
 
@@ -195,7 +195,7 @@ func ScaffoldProblem(problemDir, targetLang string) error {
 		return fmt.Errorf("could not generate main solution file for %s: %w", problemDir, err)
 	}
 
-	err = GenerateFrontendDisplayFile(problemDir, config)
+	err = GenerateSettingDataFile(problemDir, config)
 	if err != nil {
 		return fmt.Errorf("could not generate frontend display file for %s: %w", problemDir, err)
 	}
