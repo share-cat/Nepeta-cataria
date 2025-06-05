@@ -86,3 +86,8 @@ Nepeta-cataria/
 go build -o makejudge_tool ./tools/makejudge_cli/main.go
 ./makejudge_tool generate -problem_dir <dir>
 ```
+
+### swagger path
+```bash
+/api/docs/index.html
+```
