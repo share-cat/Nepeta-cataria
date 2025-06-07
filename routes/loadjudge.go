@@ -16,6 +16,5 @@ func SetupLoadjudgeRoutes(router *gin.RouterGroup, controller *controllers.LoadJ
 		protectedSocials.POST("/validate", controller.ValidateJudgeZip)
 		protectedSocials.GET("/directory/:id", controller.GetJudgeDirectory)
 		protectedSocials.GET("/download/:id", controller.DownloadJudgeFile)
-		protectedSocials.GET("/base-directory", controller.GetJudgesBaseDirectory)
 	}
 }

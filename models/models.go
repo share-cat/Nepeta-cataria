@@ -4,27 +4,28 @@ import (
 	"time"
 
 	"github.com/jackc/pgtype"
+	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
 type Judge struct {
 	gorm.Model
-	Name         string        `gorm:"type:varchar(255);not null"`
-	Description  string        `gorm:"type:text"`
-	Readme       string        `gorm:"type:text"`
-	CreatorID    int           `gorm:"not null"`
-	Tags         []string      `gorm:"type:varchar(255)[];column:tag"`
-	Langs        []string      `gorm:"type:varchar(255)[]"`
-	Type         string        `gorm:"type:varchar(255);not null"`
-	MemoryLimit  int           `gorm:"default:0"`
-	TimeLimit    int           `gorm:"default:0"`
-	CheckType    string        `gorm:"type:varchar(255);not null"`
-	IsActive     bool          `gorm:"default:true"`
-	Difficulty   int           `gorm:"default:0"`
-	FullSetting  pgtype.JSONB  `gorm:"type:jsonb;default:'{}'"`
-	Creator      User          `gorm:"foreignKey:CreatorID"`
-	Solutions    []Solution    `gorm:"foreignKey:JudgeID"`
-	ChatSessions []ChatSession `gorm:"foreignKey:JudgeID"`
+	Name         string         `gorm:"type:varchar(255);not null"`
+	Description  string         `gorm:"type:text"`
+	Readme       string         `gorm:"type:text"`
+	CreatorID    int            `gorm:"not null"`
+	Tags         pq.StringArray `gorm:"type:text[];column:tag"`
+	Langs        pq.StringArray `gorm:"type:text[]"`
+	Type         string         `gorm:"type:varchar(255);not null"`
+	MemoryLimit  int            `gorm:"default:0"`
+	TimeLimit    int            `gorm:"default:0"`
+	CheckType    string         `gorm:"type:varchar(255);not null"`
+	IsActive     bool           `gorm:"default:true"`
+	Difficulty   int            `gorm:"default:0"`
+	FullSetting  pgtype.JSONB   `gorm:"type:jsonb;default:'{}'"`
+	Creator      User           `gorm:"foreignKey:CreatorID"`
+	Solutions    []Solution     `gorm:"foreignKey:JudgeID"`
+	ChatSessions []ChatSession  `gorm:"foreignKey:JudgeID"`
 }
 
 type Permission struct {
@@ -145,14 +146,14 @@ type ChatSession struct {
 type Discussion struct {
 	// 討論區
 	gorm.Model
-	Title      string   `gorm:"type:varchar(255);not null"`
-	Content    string   `gorm:"type:text;not null"`
-	Type       string   `gorm:"type:varchar(255);not null"`
-	Tags       []string `gorm:"type:varchar(255)[]"`
-	ParentID   int      `gorm:"column:pid"`                     // Parent ID
-	ParentType string   `gorm:"type:varchar(255);column:ptype"` // Parent Type
-	Views      int      `gorm:"default:0"`
-	AuthorID   int      `gorm:"not null;index"`
+	Title      string         `gorm:"type:varchar(255);not null"`
+	Content    string         `gorm:"type:text;not null"`
+	Type       string         `gorm:"type:varchar(255);not null"`
+	Tags       pq.StringArray `gorm:"type:text[]"`
+	ParentID   int            `gorm:"column:pid"`                     // Parent ID
+	ParentType string         `gorm:"type:varchar(255);column:ptype"` // Parent Type
+	Views      int            `gorm:"default:0"`
+	AuthorID   int            `gorm:"not null;index"`
 
 	Author User `gorm:"foreignKey:AuthorID"`
 }

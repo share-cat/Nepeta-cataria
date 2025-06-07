@@ -22,6 +22,11 @@ import (
 // @securitydefinitions.bearerauth jwt
 func main() {
 	initdb()
+	err := boot.Initfile()
+	if err != nil {
+		log.Fatal("failed to create judges directory")
+		log.Fatal(err)
+	}
 	server := gin.Default()
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowAllOrigins = true

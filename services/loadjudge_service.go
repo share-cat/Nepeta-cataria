@@ -74,6 +74,20 @@ func (s *LoadJudgeService) LoadJudge(request LoadJudgeRequest) (*LoadJudgeRespon
 		return nil, fmt.Errorf("載入問題配置失敗: %w", err)
 	}
 
+	for _, lang := range config.Languages {
+		switch strings.ToLower(lang) {
+		case loadjudge.Python:
+			makejudge.GenerateMainSolutionFile(configDir, loadjudge.Python, config)
+		case loadjudge.Cpp:
+			makejudge.GenerateMainSolutionFile(configDir, loadjudge.Cpp, config)
+		case loadjudge.JavaScript:
+			makejudge.GenerateMainSolutionFile(configDir, loadjudge.JavaScript, config)
+		default:
+			log.Printf("警告: 不支援的語言 '%s'，將被忽略", lang)
+			continue
+		}
+	}
+
 	judge, err := s.createJudgeRecord(config, request.CreatorID, configDir)
 	if err != nil {
 
@@ -292,7 +306,7 @@ func (s *LoadJudgeService) ValidateZipFile(zipPath string) error {
 		if strings.HasSuffix(file.Name, "config.yaml") {
 			hasConfig = true
 		}
-		if strings.Contains(file.Name, "testdata/") && (strings.HasSuffix(file.Name, ".in") || strings.HasSuffix(file.Name, ".out")) {
+		if strings.Contains(file.Name, "testdata.yaml") {
 			hasTestData = true
 		}
 	}

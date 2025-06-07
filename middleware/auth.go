@@ -1,7 +1,10 @@
 package middleware
 
 import (
+	"log"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"share-cat/Nepeta-cataria/utils"
 
@@ -18,6 +21,9 @@ func JwtAuth() gin.HandlerFunc {
 			return
 		}
 
+		log.Printf("Received token: %s", token)
+		token = strings.TrimPrefix(token, "Bearer ")
+
 		parsedToken, err := utils.ParseToken(token)
 		if err != nil || !parsedToken.Valid {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
@@ -32,7 +38,15 @@ func JwtAuth() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("userID", claims["userID"])
+		userint, err := strconv.Atoi(claims["userID"].(string))
+		if err != nil {
+			log.Printf("Error parsing userID: %v", err)
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user ID in token"})
+			c.Abort()
+			return
+		}
+
+		c.Set("userID", userint)
 		c.Next()
 	}
 }

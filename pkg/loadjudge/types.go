@@ -8,6 +8,12 @@ const (
 	TestDataYamlFile = "testdata.yaml"
 )
 
+const (
+	Python     = "python"
+	Cpp        = "cpp"
+	JavaScript = "javascript"
+)
+
 type ProblemConfig struct {
 	Name           string   `yaml:"name"`
 	Description    string   `yaml:"description"`

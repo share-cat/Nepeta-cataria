@@ -10,12 +10,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const (
-	Python     = "python"
-	Cpp        = "cpp"
-	JavaScript = "javascript"
-)
-
 func LoadProblemConfig(problemDir string) (ProblemConfig, error) {
 	var config ProblemConfig
 	configPath := filepath.Join(problemDir, ConfigFileName)
@@ -98,6 +92,12 @@ func LoadTestDataConfig(problemDir string) (TestDataConfig, error) {
 	}
 
 	log.Printf("Successfully loaded test data config with %d test cases", len(testData.TestCases))
+	testData.Sample.Input = strings.TrimSuffix(testData.Sample.Input, "\n")
+	testData.Sample.Output = strings.TrimSuffix(testData.Sample.Output, "\n")
+	for i, tc := range testData.TestCases {
+		testData.TestCases[i].Input = strings.TrimSuffix(tc.Input, "\n")
+		testData.TestCases[i].Output = strings.TrimSuffix(tc.Output, "\n")
+	}
 	return testData, nil
 }
 

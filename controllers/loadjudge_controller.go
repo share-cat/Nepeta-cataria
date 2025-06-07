@@ -342,20 +342,3 @@ func (c *LoadJudgeController) DownloadJudgeFile(ctx *gin.Context) {
 		ctx.Header("X-Error", "檔案傳輸失敗")
 	}
 }
-
-// GetJudgesBaseDirectory 獲取題目基礎目錄
-// @Summary 獲取題目基礎目錄
-// @Description 獲取所有題目的基礎存儲目錄
-// @Tags loadjudge
-// @Accept json
-// @Produce json
-// @Success 200 {object} map[string]string
-// @Router /load-judge/base-directory [get]
-func (c *LoadJudgeController) GetJudgesBaseDirectory(ctx *gin.Context) {
-	baseDir := c.loadJudgeService.GetJudgesBaseDir()
-
-	ctx.JSON(http.StatusOK, gin.H{
-		"base_directory": baseDir,
-		"exists":         true,
-	})
-}

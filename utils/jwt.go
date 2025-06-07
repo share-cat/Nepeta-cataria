@@ -2,6 +2,8 @@ package utils
 
 import (
 	"errors"
+	"log"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -12,7 +14,16 @@ type Auth struct {
 	RefreshToken string `json:"refreshToken"`
 }
 
+func getJWTSecret() []byte {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		log.Fatal("JWT_SECRET environment variable is not set")
+	}
+	return []byte(secret)
+}
+
 func CreateToken(userID string) (*Auth, error) {
+	jwtSecret := getJWTSecret()
 	claims := jwt.MapClaims{
 		"userID": userID,
 		"exp":    jwt.NewNumericDate(time.Now().Add(time.Minute * 30)).Unix(),
@@ -25,11 +36,11 @@ func CreateToken(userID string) (*Auth, error) {
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshclaims)
-	signedToken, err := token.SignedString([]byte("your-secret-key"))
+	signedToken, err := token.SignedString(jwtSecret)
 	if err != nil {
 		return nil, err
 	}
-	signedRefreshToken, err := refreshToken.SignedString([]byte("your-secret-key"))
+	signedRefreshToken, err := refreshToken.SignedString(jwtSecret)
 	if err != nil {
 		return nil, err
 	}
@@ -57,6 +68,7 @@ func RefreshToken(token string) (string, error) {
 }
 
 func ParseToken(jwtToken string) (*jwt.Token, error) {
+	jwtSecret := getJWTSecret()
 	if jwtToken == "" {
 		return nil, errors.New("token is empty")
 	}
@@ -65,7 +77,7 @@ func ParseToken(jwtToken string) (*jwt.Token, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("unexpected signing method")
 		}
-		return []byte("your-secret-key"), nil
+		return jwtSecret, nil
 	})
 	if err != nil {
 		return nil, err
