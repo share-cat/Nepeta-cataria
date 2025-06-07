@@ -12,6 +12,7 @@ import (
 	"share-cat/Nepeta-cataria/pkg/loadjudge"
 	"share-cat/Nepeta-cataria/pkg/makejudge"
 	"share-cat/Nepeta-cataria/repositories"
+	"share-cat/Nepeta-cataria/utils"
 	"strings"
 	"time"
 )
@@ -38,6 +39,7 @@ type LoadJudgeRequest struct {
 	ZipFilePath string `json:"zip_file_path"`
 	CreatorID   int    `json:"creator_id"`
 	JudgeName   string `json:"judge_name,omitempty"`
+	ForceUpdate bool   `json:"force_update,omitempty"`
 }
 
 type LoadJudgeResponse struct {
@@ -47,29 +49,75 @@ type LoadJudgeResponse struct {
 	PermanentPath string `json:"permanent_path"`
 	Success       bool   `json:"success"`
 	Message       string `json:"message"`
+	IsUpdate      bool   `json:"is_update"`
+	ExistingID    uint   `json:"existing_id,omitempty"`
 }
 
 func (s *LoadJudgeService) LoadJudge(request LoadJudgeRequest) (*LoadJudgeResponse, error) {
 	log.Printf("開始載入評判題目: %s", request.ZipFilePath)
 
+	tempDir := filepath.Join(os.TempDir(), fmt.Sprintf("judge_temp_%d", time.Now().UnixNano()))
+	defer os.RemoveAll(tempDir)
+
+	if err := s.extractZipFile(request.ZipFilePath, tempDir); err != nil {
+		return nil, fmt.Errorf("解壓縮檔案失敗: %w", err)
+	}
+
+	config, _, err := s.loadProblemConfig(tempDir)
+	if err != nil {
+		return nil, fmt.Errorf("載入問題配置失敗: %w", err)
+	}
+
+	existingJudge, isDuplicate := s.checkDuplicateJudge(config, request.CreatorID)
+
+	if isDuplicate && !request.ForceUpdate {
+		return &LoadJudgeResponse{
+			JudgeID:    0,
+			Name:       config.Name,
+			Success:    false,
+			Message:    fmt.Sprintf("題目 '%s' 已存在。如需更新，請設定 force_update=true", config.Name),
+			IsUpdate:   false,
+			ExistingID: existingJudge.ID,
+		}, nil
+	}
+
 	if err := os.MkdirAll(s.judgesBaseDir, 0755); err != nil {
 		return nil, fmt.Errorf("創建 judges 目錄失敗: %w", err)
 	}
 
-	judgeDirName := s.generateJudgeDirName(request.JudgeName)
-	judgeDir := filepath.Join(s.judgesBaseDir, judgeDirName)
+	var judgeDirName string
+	var judgeDir string
+	var isUpdate bool
 
-	judgeDir = s.ensureUniqueJudgeDir(judgeDir)
+	if isDuplicate && request.ForceUpdate {
+		isUpdate = true
+		existingPath, err := s.getJudgeDirectoryFromFullSetting(existingJudge)
+		if err != nil {
+			judgeDirName = s.generateJudgeDirName(request.JudgeName)
+			judgeDir = filepath.Join(s.judgesBaseDir, judgeDirName)
+			judgeDir = s.ensureUniqueJudgeDir(judgeDir)
+		} else {
+			judgeDir = existingPath
+			backupDir := existingPath + "_backup_" + time.Now().Format("20060102_150405")
+			if err := utils.CopyDirectory(existingPath, backupDir); err != nil {
+				log.Printf("警告: 創建備份失敗: %v", err)
+			} else {
+				log.Printf("已創建備份: %s", backupDir)
+			}
+		}
+	} else {
+		judgeDirName = s.generateJudgeDirName(request.JudgeName)
+		judgeDir = filepath.Join(s.judgesBaseDir, judgeDirName)
+		judgeDir = s.ensureUniqueJudgeDir(judgeDir)
+	}
 
 	if err := s.extractZipFile(request.ZipFilePath, judgeDir); err != nil {
-
 		os.RemoveAll(judgeDir)
 		return nil, fmt.Errorf("解壓縮檔案失敗: %w", err)
 	}
 
 	config, configDir, err := s.loadProblemConfig(judgeDir)
 	if err != nil {
-
 		os.RemoveAll(judgeDir)
 		return nil, fmt.Errorf("載入問題配置失敗: %w", err)
 	}
@@ -88,11 +136,24 @@ func (s *LoadJudgeService) LoadJudge(request LoadJudgeRequest) (*LoadJudgeRespon
 		}
 	}
 
-	judge, err := s.createJudgeRecord(config, request.CreatorID, configDir)
-	if err != nil {
+	var judge *models.Judge
+	if isUpdate {
+		judge, err = s.updateJudgeRecord(existingJudge, config, configDir)
+		if err != nil {
+			os.RemoveAll(judgeDir)
+			return nil, fmt.Errorf("更新資料庫記錄失敗: %w", err)
+		}
+	} else {
+		judge, err = s.createJudgeRecord(config, request.CreatorID, configDir)
+		if err != nil {
+			os.RemoveAll(judgeDir)
+			return nil, fmt.Errorf("創建資料庫記錄失敗: %w", err)
+		}
+	}
 
-		os.RemoveAll(judgeDir)
-		return nil, fmt.Errorf("創建資料庫記錄失敗: %w", err)
+	message := "評判題目載入成功"
+	if isUpdate {
+		message = "評判題目更新成功"
 	}
 
 	response := &LoadJudgeResponse{
@@ -101,11 +162,107 @@ func (s *LoadJudgeService) LoadJudge(request LoadJudgeRequest) (*LoadJudgeRespon
 		Description:   judge.Description,
 		PermanentPath: configDir,
 		Success:       true,
-		Message:       "評判題目載入成功",
+		Message:       message,
+		IsUpdate:      isUpdate,
 	}
 
 	log.Printf("評判題目載入成功: ID=%d, Name=%s, Path=%s", judge.ID, judge.Name, configDir)
 	return response, nil
+}
+
+func (s *LoadJudgeService) checkDuplicateJudge(config loadjudge.ProblemConfig, creatorID int) (models.Judge, bool) {
+	judges, err := s.judgeRepo.GetJudgesByCreator(uint(creatorID))
+	if err != nil {
+		log.Printf("檢查重複 judge 時發生錯誤: %v", err)
+		return models.Judge{}, false
+	}
+
+	for _, judge := range judges {
+		if judge.Name == config.Name {
+			return judge, true
+		}
+	}
+
+	return models.Judge{}, false
+}
+
+func (s *LoadJudgeService) updateJudgeRecord(existingJudge models.Judge, config loadjudge.ProblemConfig, configDir string) (*models.Judge, error) {
+	readme := ""
+	readmePath := filepath.Join(configDir, config.ReadmeFile)
+	if config.ReadmeFile != "" && loadjudge.FileExists(readmePath) {
+		readmeBytes, err := os.ReadFile(readmePath)
+		if err != nil {
+			log.Printf("警告: 讀取 README 檔案失敗: %v", err)
+		} else {
+			readme = string(readmeBytes)
+		}
+	}
+
+	settingJSON, err := makejudge.GenerateSettingDataJSON(configDir, config)
+	if err != nil {
+		return nil, fmt.Errorf("獲取JSON 失敗: %w", err)
+	}
+
+	fullSetting := map[string]interface{}{
+		"config":         config,
+		"problem_path":   configDir,
+		"test_data_path": filepath.Join(configDir, loadjudge.TestDataDir),
+		"checker_file":   config.Checker.File,
+		"checker_lang":   config.Checker.Language,
+		"fullsetting":    json.RawMessage(settingJSON),
+		"updated_at":     time.Now().Unix(),
+	}
+
+	fullSettingJSON, err := json.Marshal(fullSetting)
+	if err != nil {
+		return nil, fmt.Errorf("序列化完整設定失敗: %w", err)
+	}
+
+	level := 1
+	switch strings.ToLower(config.Level) {
+	case "easy", "簡單", "1":
+		level = 1
+	case "medium", "中等", "2":
+		level = 2
+	case "hard", "困難", "3":
+		level = 3
+	default:
+		level = 1
+	}
+
+	existingJudge.Name = config.Name
+	existingJudge.Description = config.Description
+	existingJudge.Readme = readme
+	existingJudge.Tags = config.Tags
+	existingJudge.Langs = config.Languages
+	existingJudge.Type = config.Type
+	existingJudge.MemoryLimit = config.MemoryLimitMb
+	existingJudge.TimeLimit = int(config.TimeLimitSec)
+	existingJudge.CheckType = config.CheckType
+	existingJudge.Difficulty = level
+
+	if err := existingJudge.FullSetting.Set(fullSettingJSON); err != nil {
+		return nil, fmt.Errorf("設定 FullSetting 失敗: %w", err)
+	}
+
+	if err := s.judgeRepo.Update(existingJudge); err != nil {
+		return nil, fmt.Errorf("更新 Judge 記錄失敗: %w", err)
+	}
+
+	return &existingJudge, nil
+}
+
+func (s *LoadJudgeService) getJudgeDirectoryFromFullSetting(judge models.Judge) (string, error) {
+	var fullSetting map[string]interface{}
+	if err := judge.FullSetting.AssignTo(&fullSetting); err != nil {
+		return "", fmt.Errorf("解析 FullSetting 失敗: %w", err)
+	}
+
+	if problemPath, ok := fullSetting["problem_path"].(string); ok {
+		return problemPath, nil
+	}
+
+	return "", fmt.Errorf("無法從 FullSetting 中找到問題路徑")
 }
 
 func (s *LoadJudgeService) generateJudgeDirName(customName string) string {
