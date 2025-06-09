@@ -242,16 +242,3 @@ func executeCodeTemplateWithTypes(language string, data TemplateData) (string, e
 	}
 	return tplBuffer.String(), nil
 }
-
-func executeCodeTemplate(language string, data TemplateData) (string, error) {
-	tmpl, err := getTemplate(language)
-	if err != nil {
-		return "", err
-	}
-
-	var tplBuffer bytes.Buffer
-	if err := tmpl.Execute(&tplBuffer, data); err != nil {
-		return "", fmt.Errorf("failed to execute %s template: %w", language, err)
-	}
-	return tplBuffer.String(), nil
-}

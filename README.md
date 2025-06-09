@@ -85,6 +85,7 @@ Nepeta-cataria/
 ```bash
 go build -o makejudge_tool ./tools/makejudge_cli/main.go
 ./makejudge_tool generate -problem_dir <dir>
+./makejudge_tool testgen -problem_dir judges/testload -code_file judges/testload/test.py -lang python -output test_runner.py
 ```
 
 ### swagger path

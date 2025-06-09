@@ -59,8 +59,8 @@ type TestDataConfig struct {
 }
 
 type TestCase struct {
-	Name   string `yaml:"name"`
-	Input  string `yaml:"input"`
-	Output string `yaml:"output"`
-	Points int    `yaml:"points"`
+	Name   string `yaml:"name" json:"name"`
+	Input  string `yaml:"input" json:"input"`
+	Output string `yaml:"output" json:"output"`
+	Points int    `yaml:"points" json:"points"`
 }
