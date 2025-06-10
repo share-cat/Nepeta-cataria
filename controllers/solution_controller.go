@@ -5,6 +5,8 @@ import (
 	"strconv"
 
 	"share-cat/Nepeta-cataria/models"
+	"share-cat/Nepeta-cataria/pkg/catwheel"
+	"share-cat/Nepeta-cataria/pkg/makejudge"
 	"share-cat/Nepeta-cataria/services"
 
 	"github.com/gin-gonic/gin"
@@ -12,11 +14,15 @@ import (
 
 type SolutionController struct {
 	solutionService *services.SolutionService
+	judgeService    *services.JudgeService
+	langService     *services.SupportLangService
 }
 
-func NewSolutionController(solutionService *services.SolutionService) *SolutionController {
+func NewSolutionController(solutionService *services.SolutionService, judgeService *services.JudgeService, langService *services.SupportLangService) *SolutionController {
 	return &SolutionController{
 		solutionService: solutionService,
+		judgeService:    judgeService,
+		langService:     langService,
 	}
 }
 
@@ -86,6 +92,12 @@ func (c *SolutionController) GetSolution(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, solution)
 }
 
+type SolutionSubmission struct {
+	Code     string `json:"code" binding:"required"`
+	JudgeID  int    `json:"judge_id" binding:"required"`
+	Language string `json:"language" binding:"required"`
+}
+
 // SubmitSolution 提交新答案
 // @Summary 提交新答案
 // @Description 提交一個新答案
@@ -93,24 +105,59 @@ func (c *SolutionController) GetSolution(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param solution body models.Solution true "Solution Info"
+// @Param solution body SolutionSubmission true "Solution Info"
 // @Success 201 {object} models.Solution
 // @Failure 400 {object} map[string]string
 // @Router /solutions [post]
 func (c *SolutionController) SubmitSolution(ctx *gin.Context) {
+	var submission SolutionSubmission
 	var solution models.Solution
 
-	if err := ctx.ShouldBindJSON(&solution); err != nil {
+	if err := ctx.ShouldBindJSON(&submission); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
 
-	// 從身份驗證中獲取用戶 ID (如果已實現身份驗證)
 	userID, exists := ctx.Get("userID")
-	if exists {
-		solution.UserID = userID.(int)
+
+	if !exists {
+		// 應該不太可能:P
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"error": "未授權的請求",
+		})
+		return
+	}
+
+	judgedata, err := c.judgeService.GetJudgeByID(uint(submission.JudgeID))
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{
+			"error": "題目不存在",
+		})
+		return
+	}
+
+	language, err := c.langService.GetSupportLangByName(submission.Language)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+
+			"error": "無效的語言: " + submission.Language,
+		})
+		return
+	}
+	if language.ID == 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "無效的語言: " + submission.Language,
+		})
+		return
+	}
+
+	solution = models.Solution{
+		Code:       submission.Code,
+		JudgeID:    submission.JudgeID,
+		UserID:     int(userID.(uint)),
+		LanguageID: int(language.ID),
 	}
 
 	createdSolution, err := c.solutionService.SubmitSolution(solution)
@@ -121,7 +168,105 @@ func (c *SolutionController) SubmitSolution(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, createdSolution)
+	client := catwheel.NewClient("")
+	judgedatasetting := judgedata.GetSetting()
+
+	// 暫時這樣處理 一定要重構!!!
+	var solutionex *catwheel.ExecuteResponse
+	var totalExecutionTime int64 = 0
+	var totalMemoryUsed int64 = 0
+	var overallSuccess bool = true
+	var overallStatus string = "COMPLETED"
+
+	for _, testcase := range judgedatasetting.TestCases {
+		executeCode, err := makejudge.GenerateExecutableCodeWithSettingData(judgedatasetting, testcase, submission.Code, submission.Language)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"error": "生成可執行代碼失敗: " + err.Error(), //TODO: 以後記得刪除
+			})
+			return
+		}
+
+		var langOption string
+		switch submission.Language {
+		case "python":
+			langOption = catwheel.LanguagePython
+		case "cpp", "c++":
+			langOption = catwheel.LanguageCpp
+		case "javascript", "nodejs":
+			langOption = catwheel.LanguageJavaScript
+		default:
+			langOption = catwheel.LanguagePython
+		}
+
+		options := catwheel.DefaultExecuteOptions().
+			WithLanguage(langOption).
+			WithTimeout(10).
+			WithMemoryLimit(128 * 1024 * 1024)
+
+		solution_res, err := client.ExecuteWithOptions(executeCode, options)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
+		totalExecutionTime += solution_res.Result.ExecutionTime
+		totalMemoryUsed += solution_res.Result.MemoryUsed
+
+		if !solution_res.Success {
+			overallSuccess = false
+		}
+
+		switch solution_res.Result.Status {
+		case "Failed", "Timeout", "MemoryLimit", "RuntimeError":
+			overallSuccess = false
+			overallStatus = solution_res.Result.Status
+		}
+
+		if solution_res.Result.ExitCode != 0 {
+			overallSuccess = false
+			if overallStatus == "COMPLETED" {
+				overallStatus = "RUNTIME_ERROR"
+			}
+		}
+		//TODO: 還沒有檢查測試結果是否正確
+
+		solutionex = solution_res
+	}
+
+	if overallSuccess {
+		overallStatus = "ACCEPTED"
+	}
+
+	aggregatedResult := catwheel.ExecuteResponse{
+		ExecutionID: solutionex.ExecutionID,
+		Success:     overallSuccess,
+		Result: catwheel.ExecutionResult{
+			ID:            solutionex.Result.ID,
+			Status:        overallStatus,
+			Stdout:        solutionex.Result.Stdout,
+			Stderr:        solutionex.Result.Stderr,
+			ExitCode:      solutionex.Result.ExitCode,
+			ExecutionTime: totalExecutionTime,
+			CPUTime:       solutionex.Result.CPUTime,
+			MemoryUsed:    totalMemoryUsed,
+			ErrorMessage:  solutionex.Result.ErrorMessage,
+			CreatedAt:     solutionex.Result.CreatedAt,
+			CompletedAt:   solutionex.Result.CompletedAt,
+		},
+	}
+
+	updateSolution, err := c.solutionService.UpdateSolutionFromExecution(aggregatedResult, createdSolution.ID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": "更新答案結果失敗: " + err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, updateSolution)
 }
 
 // UpdateSolutionResult 更新答案結果

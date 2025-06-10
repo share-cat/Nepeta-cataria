@@ -206,6 +206,19 @@ func (ti *TypeInfo) GenerateFunctionParameter(language, paramName string) (strin
 	}
 }
 
+func ParseTestDataTypesString(Inputstring string, Outputstring string) (inputType *TypeInfo, outputType *TypeInfo, err error) {
+	inputType, err = ParseType(Inputstring)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to parse input type '%s': %w", Inputstring, err)
+	}
+	outputType, err = ParseType(Outputstring)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to parse output type '%s': %w", Outputstring, err)
+	}
+
+	return inputType, outputType, nil
+}
+
 func ParseTestDataTypes(testConfig TestDataConfig) (inputType *TypeInfo, outputType *TypeInfo, err error) {
 	if testConfig.TestConfig.InputFormat.Type != "" {
 		inputType, err = ParseType(testConfig.TestConfig.InputFormat.Type)

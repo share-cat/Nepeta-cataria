@@ -124,6 +124,42 @@ const result = runSingleTest();
 console.log(JSON.stringify(result, null, 2));
 `
 
+func GenerateExecutableCodeWithSettingData(testData SettingData, testCase loadjudge.TestCase, userCode string, language string) (string, error) {
+	testCaseJSON, err := json.Marshal(testCase)
+	if err != nil {
+		return "", fmt.Errorf("序列化失敗: %w", err)
+	}
+
+	var inputType, outputType *loadjudge.TypeInfo
+	inputType, outputType, err = loadjudge.ParseTestDataTypesString(testData.InputFormat.Type, testData.OutputFormat.Type)
+	if err != nil {
+		fmt.Printf("無法解析類型資訊: %v\n", err)
+	}
+
+	var template string
+	var imports string
+
+	switch strings.ToLower(language) {
+	case loadjudge.Python:
+		template = pythonExecutableTemplate
+		imports = generateImportsForPython(inputType, outputType)
+	case loadjudge.Cpp:
+		template = cppExecutableTemplate
+		imports = generateIncludesForCpp(inputType, outputType)
+	case loadjudge.JavaScript:
+		template = jsExecutableTemplate
+		imports = ""
+	default:
+		return "", fmt.Errorf("不支援的語言: %s", language)
+	}
+
+	code := strings.ReplaceAll(template, "{{.Import}}", imports)
+	code = strings.ReplaceAll(code, "{{.UserCode}}", userCode)
+	code = strings.ReplaceAll(code, "{{.TestData}}", string(testCaseJSON))
+
+	return code, nil
+}
+
 func GenerateExecutableCodeWithTestData(testData loadjudge.TestDataConfig, testCase loadjudge.TestCase, userCode string, language string) (string, error) {
 	testCaseJSON, err := json.Marshal(testCase)
 	if err != nil {

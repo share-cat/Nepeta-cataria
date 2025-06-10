@@ -3,6 +3,8 @@ package models
 import (
 	"time"
 
+	"share-cat/Nepeta-cataria/pkg/makejudge"
+
 	"github.com/jackc/pgtype"
 	"github.com/lib/pq"
 	"gorm.io/gorm"
@@ -26,6 +28,14 @@ type Judge struct {
 	Creator      User           `gorm:"foreignKey:CreatorID"`
 	Solutions    []Solution     `gorm:"foreignKey:JudgeID"`
 	ChatSessions []ChatSession  `gorm:"foreignKey:JudgeID"`
+}
+
+func (e *Judge) GetSetting() makejudge.SettingData {
+	var setting makejudge.SettingData
+	if err := e.FullSetting.AssignTo(&setting); err != nil {
+		return makejudge.SettingData{}
+	}
+	return setting
 }
 
 type Permission struct {

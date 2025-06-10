@@ -32,6 +32,7 @@ type Services struct {
 	SocialService       *services.SocialService
 	SolutionService     *services.SolutionService
 	SubmitEffectService *services.SubmitEffectService
+	SupportLangService  *services.SupportLangService
 	UserService         *services.UserService
 	UserProfileService  *services.UserProfileService
 }
@@ -84,6 +85,7 @@ func NewServices(repos Repositories) Services {
 		SocialService:       services.NewSocialService(repos.SocialRepo),
 		SolutionService:     services.NewSolutionService(repos.SolutionRepo, repos.UserRepo, repos.JudgeRepo, repos.SupportLangRepo),
 		SubmitEffectService: services.NewSubmitEffectService(repos.SubmiteffectRepo),
+		SupportLangService:  services.NewSupportLangService(repos.SupportLangRepo),
 		UserService:         services.NewUserService(repos.UserRepo),
 		UserProfileService:  services.NewUserProfileService(repos.UserProfileRepo, repos.UserRepo),
 	}
@@ -102,7 +104,7 @@ func NewControllers(services Services) Controllers {
 		UserProfileController:  controllers.NewUserProfileController(services.UserProfileService),
 		UserController:         controllers.NewUserController(services.UserService),
 		JudgeController:        controllers.NewJudgeController(services.JudgeService),
-		SolutionController:     controllers.NewSolutionController(services.SolutionService),
+		SolutionController:     controllers.NewSolutionController(services.SolutionService, services.JudgeService, services.SupportLangService),
 	}
 }
 

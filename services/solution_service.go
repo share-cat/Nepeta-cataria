@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"share-cat/Nepeta-cataria/models"
+	"share-cat/Nepeta-cataria/pkg/catwheel"
 	"share-cat/Nepeta-cataria/repositories"
 )
 
@@ -96,6 +97,24 @@ func (s *SolutionService) SubmitSolution(solution models.Solution) (models.Solut
 	solution.Score = 0
 
 	return s.repo.Create(solution)
+}
+
+func (s *SolutionService) UpdateSolutionFromExecution(result catwheel.ExecuteResponse, solutionID uint) (models.Solution, error) {
+	solution, err := s.repo.GetByID(solutionID)
+	if err != nil {
+		return models.Solution{}, errors.New("答案不存在")
+	}
+
+	solution.Status = result.Result.Status
+	solution.ExecutionTime = int(result.Result.ExecutionTime)
+	solution.MemoryUsage = int(result.Result.MemoryUsed)
+
+	err = s.repo.Update(solution)
+	if err != nil {
+		return models.Solution{}, err
+	}
+
+	return solution, nil
 }
 
 // UpdateSolutionResult 更新答案評分結果
