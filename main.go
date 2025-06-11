@@ -51,6 +51,7 @@ func initdb() {
 	}
 
 	dbInit()
+	boot.InitSupportLangs(global.DB)
 }
 
 func dbInit() {

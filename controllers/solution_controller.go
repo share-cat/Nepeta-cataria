@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/base64"
 	"net/http"
 	"strconv"
 
@@ -156,7 +157,7 @@ func (c *SolutionController) SubmitSolution(ctx *gin.Context) {
 	solution = models.Solution{
 		Code:       submission.Code,
 		JudgeID:    submission.JudgeID,
-		UserID:     int(userID.(uint)),
+		UserID:     userID.(int),
 		LanguageID: int(language.ID),
 	}
 
@@ -168,7 +169,7 @@ func (c *SolutionController) SubmitSolution(ctx *gin.Context) {
 		return
 	}
 
-	client := catwheel.NewClient("")
+	client := catwheel.NewClient("http://localhost:3200")
 	judgedatasetting := judgedata.GetSetting()
 
 	// 暫時這樣處理 一定要重構!!!
@@ -178,8 +179,16 @@ func (c *SolutionController) SubmitSolution(ctx *gin.Context) {
 	var overallSuccess bool = true
 	var overallStatus string = "COMPLETED"
 
+	unb64code, err := base64.StdEncoding.DecodeString(submission.Code)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": "轉換b64失敗: " + err.Error(),
+		})
+		return
+	}
+
 	for _, testcase := range judgedatasetting.TestCases {
-		executeCode, err := makejudge.GenerateExecutableCodeWithSettingData(judgedatasetting, testcase, submission.Code, submission.Language)
+		executeCode, err := makejudge.GenerateExecutableCodeWithSettingData(judgedatasetting, testcase, string(unb64code), submission.Language)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{
 				"error": "生成可執行代碼失敗: " + err.Error(), //TODO: 以後記得刪除
@@ -212,6 +221,10 @@ func (c *SolutionController) SubmitSolution(ctx *gin.Context) {
 			return
 		}
 
+		if solutionex == nil {
+			solutionex = solution_res
+		}
+
 		totalExecutionTime += solution_res.Result.ExecutionTime
 		totalMemoryUsed += solution_res.Result.MemoryUsed
 
@@ -231,13 +244,24 @@ func (c *SolutionController) SubmitSolution(ctx *gin.Context) {
 				overallStatus = "RUNTIME_ERROR"
 			}
 		}
-		//TODO: 還沒有檢查測試結果是否正確
+
+		if solution_res.Result.GetStdout() != testcase.Output {
+			overallSuccess = false
+			overallStatus = "Answer Error"
+		}
 
 		solutionex = solution_res
 	}
 
 	if overallSuccess {
 		overallStatus = "ACCEPTED"
+	}
+
+	if solutionex == nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": "執行結果為空",
+		})
+		return
 	}
 
 	aggregatedResult := catwheel.ExecuteResponse{

@@ -1,6 +1,8 @@
 package models
 
 import (
+	"encoding/json"
+	"log"
 	"time"
 
 	"share-cat/Nepeta-cataria/pkg/makejudge"
@@ -32,7 +34,33 @@ type Judge struct {
 
 func (e *Judge) GetSetting() makejudge.SettingData {
 	var setting makejudge.SettingData
-	if err := e.FullSetting.AssignTo(&setting); err != nil {
+
+	if e.FullSetting.Status != pgtype.Present {
+		log.Printf("FullSetting is not present, status: %v", e.FullSetting.Status)
+		return makejudge.SettingData{}
+	}
+
+	var rawData map[string]interface{}
+	if err := json.Unmarshal(e.FullSetting.Bytes, &rawData); err != nil {
+		log.Printf("Error unmarshaling JSON: %v", err)
+		return makejudge.SettingData{}
+	}
+
+	var settingData interface{}
+	if fullsetting, exists := rawData["fullsetting"]; exists {
+		settingData = fullsetting
+	} else {
+		settingData = rawData
+	}
+
+	settingBytes, err := json.Marshal(settingData)
+	if err != nil {
+		log.Printf("Error marshaling setting data: %v", err)
+		return makejudge.SettingData{}
+	}
+
+	if err := json.Unmarshal(settingBytes, &setting); err != nil {
+		log.Printf("Error unmarshaling to SettingData: %v", err)
 		return makejudge.SettingData{}
 	}
 	return setting

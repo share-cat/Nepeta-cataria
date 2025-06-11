@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -236,6 +237,10 @@ func (s *SystemInfo) GetAvailableRuntimes() []string {
 		}
 	}
 	return available
+}
+
+func (r *ExecutionResult) GetStdout() string {
+	return strings.TrimSuffix(r.Stdout, "\n")
 }
 
 func (r *ExecutionResult) IsSuccess() bool {
