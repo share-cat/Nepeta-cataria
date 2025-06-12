@@ -32,6 +32,19 @@ definitions:
       token:
         type: string
     type: object
+  controllers.SolutionSubmission:
+    properties:
+      code:
+        type: string
+      judge_id:
+        type: integer
+      language:
+        type: string
+    required:
+    - code
+    - judge_id
+    - language
+    type: object
   gorm.DeletedAt:
     properties:
       time:
@@ -443,6 +456,8 @@ definitions:
     properties:
       creator_id:
         type: integer
+      force_update:
+        type: boolean
       judge_name:
         type: string
       zip_file_path:
@@ -452,6 +467,10 @@ definitions:
     properties:
       description:
         type: string
+      existing_id:
+        type: integer
+      is_update:
+        type: boolean
       judge_id:
         type: integer
       message:
@@ -1600,23 +1619,6 @@ paths:
       summary: 根據標籤獲取題目
       tags:
       - judges
-  /load-judge/base-directory:
-    get:
-      consumes:
-      - application/json
-      description: 獲取所有題目的基礎存儲目錄
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: 獲取題目基礎目錄
-      tags:
-      - loadjudge
   /load-judge/directory/{id}:
     get:
       consumes:
@@ -2164,7 +2166,7 @@ paths:
         name: solution
         required: true
         schema:
-          $ref: '#/definitions/models.Solution'
+          $ref: '#/definitions/controllers.SolutionSubmission'
       produces:
       - application/json
       responses:
