@@ -24,6 +24,11 @@ func (s *JudgeService) GetAllJudges() ([]models.Judge, error) {
 	return s.repo.GetAll()
 }
 
+// GetJudgesWithFilters 使用篩選條件獲取題目
+func (s *JudgeService) GetJudgesWithFilters(search, judgeType string, page int, activeOnly bool) ([]models.Judge, int, error) {
+	return s.repo.GetJudgesWithFilters(search, judgeType, page, activeOnly)
+}
+
 // GetJudgeByID 根據ID獲取題目
 func (s *JudgeService) GetJudgeByID(id uint) (models.Judge, error) {
 	return s.repo.GetByID(id)

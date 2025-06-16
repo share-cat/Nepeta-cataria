@@ -21,6 +21,38 @@ func (r *JudgeRepository) GetAll() ([]models.Judge, error) {
 	return judges, result.Error
 }
 
+// GetJudgesWithFilters 使用篩選條件獲取題目
+func (r *JudgeRepository) GetJudgesWithFilters(search, judgeType string, page int, activeOnly bool) ([]models.Judge, int, error) {
+	const pageSize = 20
+	offset := (page - 1) * pageSize
+
+	query := r.db.Model(&models.Judge{})
+
+	if search != "" {
+		query = query.Where("name LIKE ? OR description LIKE ?", "%"+search+"%", "%"+search+"%")
+	}
+
+	if judgeType != "" {
+		query = query.Where("type = ?", judgeType)
+	}
+
+	if activeOnly {
+		query = query.Where("is_active = ?", true)
+	}
+
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	var judges []models.Judge
+	if err := query.Offset(offset).Limit(pageSize).Find(&judges).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return judges, int(total), nil
+}
+
 // GetByID 根據ID獲取題目
 func (r *JudgeRepository) GetByID(id uint) (models.Judge, error) {
 	var judge models.Judge

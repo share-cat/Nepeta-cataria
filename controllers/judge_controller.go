@@ -21,27 +21,69 @@ func NewJudgeController(judgeService *services.JudgeService) *JudgeController {
 	}
 }
 
-// GetJudges 獲取所有題目
-// @Summary 獲取所有題目
-// @Description 獲取所有題目的列表
+// PaginatedJudgeResponse
+type PaginatedJudgeResponse struct {
+	Data       []models.Judge `json:"data"`
+	Page       int            `json:"page"`
+	TotalPages int            `json:"total_pages"`
+	Total      int            `json:"total"`
+}
+
+// GetJudges 獲取題目列表（支援搜尋、類型篩選、分頁）
+// @Summary 獲取題目列表
+// @Description 獲取題目列表，支援搜尋、類型篩選、分頁和活躍狀態篩選
 // @Tags judges
 // @Accept json
 // @Produce json
-// @Success 200 {array} models.Judge
+// @Param search query string false "搜尋關鍵字（支援名稱和描述搜尋）"
+// @Param type query string false "題目類型篩選"
+// @Param page query int false "頁碼（預設為1）" default(1)
+// @Param active query string false "只顯示活躍題目（true/false）"
+// @Success 200 {object} PaginatedJudgeResponse
+// @Failure 400,500 {object} map[string]string
 // @Router /judges [get]
 func (c *JudgeController) GetJudges(ctx *gin.Context) {
-	// 檢查是否只請求活躍的題目
-	activeOnly := ctx.Query("active")
 
-	var judges []models.Judge
-	var err error
+	search := ctx.Query("search")
+	judgeType := ctx.Query("type")
+	pageStr := ctx.DefaultQuery("page", "1")
+	activeOnly := ctx.Query("active") == "true"
 
-	if activeOnly == "true" {
-		judges, err = c.judgeService.GetActiveJudges()
-	} else {
-		judges, err = c.judgeService.GetAllJudges()
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "無效的頁碼",
+		})
+		return
 	}
 
+	if search == "" && judgeType == "" && page == 1 {
+		var judges []models.Judge
+		var err error
+
+		if activeOnly {
+			judges, err = c.judgeService.GetActiveJudges()
+		} else {
+			judges, err = c.judgeService.GetAllJudges()
+		}
+
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
+		ctx.JSON(http.StatusOK, PaginatedJudgeResponse{
+			Data:       judges,
+			Page:       1,
+			TotalPages: 1,
+			Total:      len(judges),
+		})
+		return
+	}
+
+	judges, total, err := c.judgeService.GetJudgesWithFilters(search, judgeType, page, activeOnly)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -49,7 +91,15 @@ func (c *JudgeController) GetJudges(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, judges)
+	pageSize := 20
+	totalPages := (total + pageSize - 1) / pageSize
+
+	ctx.JSON(http.StatusOK, PaginatedJudgeResponse{
+		Data:       judges,
+		Page:       page,
+		TotalPages: totalPages,
+		Total:      total,
+	})
 }
 
 // GetJudge 根據ID獲取題目

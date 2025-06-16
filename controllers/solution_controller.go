@@ -172,7 +172,7 @@ func (c *SolutionController) SubmitSolution(ctx *gin.Context) {
 	client := catwheel.NewClient("http://localhost:3200")
 	judgedatasetting := judgedata.GetSetting()
 
-	// 暫時這樣處理 一定要重構!!!
+	//TODO: 暫時這樣處理 一定要重構!!!
 	var solutionex *catwheel.ExecuteResponse
 	var totalExecutionTime int64 = 0
 	var totalMemoryUsed int64 = 0
