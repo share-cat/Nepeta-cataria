@@ -8,15 +8,22 @@ import (
 	"path/filepath"
 	"strings"
 
+	"share-cat/Nepeta-cataria/pkg/language"
 	"share-cat/Nepeta-cataria/pkg/loadjudge"
 )
 
 func GenerateMainSolutionFile(problemDir, targetLang string, config loadjudge.ProblemConfig) (string, error) {
 	if targetLang == "" {
 		if len(config.Languages) > 0 {
-			targetLang = config.Languages[0]
+			langType, err := language.StringToLanguageType(config.Languages[0])
+			if err != nil {
+				targetLang = string(language.LanguageTypePython)
+				log.Printf("Cannot parse language '%s', defaulting to %s", config.Languages[0], targetLang)
+			} else {
+				targetLang = string(langType)
+			}
 		} else {
-			targetLang = loadjudge.Python
+			targetLang = string(language.LanguageTypePython)
 			log.Printf("No target language specified and config.lang is empty, defaulting to %s", targetLang)
 		}
 	}
@@ -60,14 +67,13 @@ func GenerateMainSolutionFile(problemDir, targetLang string, config loadjudge.Pr
 	if err != nil {
 		return "", fmt.Errorf("failed to generate code from enhanced template for %s: %w", targetLang, err)
 	}
-
 	var mainFileName string
 	switch targetLang {
-	case loadjudge.Python:
+	case string(language.LanguageTypePython):
 		mainFileName = "main.py"
-	case loadjudge.Cpp:
+	case string(language.LanguageTypeCPP):
 		mainFileName = "main.cpp"
-	case loadjudge.JavaScript:
+	case string(language.LanguageTypeJavaScript):
 		mainFileName = "main.js"
 	default:
 		return "", fmt.Errorf("cannot determine main file name for unsupported language: %s", targetLang)

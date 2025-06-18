@@ -132,6 +132,38 @@ func (c *JudgeController) GetJudge(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, judge)
 }
 
+// GetJudgeCode 獲取題目代碼
+// @Summary 獲取題目代碼
+// @Description 根據題目ID和程式語言獲取題目代碼
+// @Tags judges
+// @Accept json
+// @Produce json
+// @Param id path string true "Judge ID"
+// @Param language path string true "Programming Language (e.g., python, cpp)"
+// @Success 200 {string} string "Code content"
+// @Failure 400,404 {object} map[string]string
+// @Router /judges/{id}/code/{language} [get]
+func (c *JudgeController) GetJudgeCode(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "無效的題目ID",
+		})
+		return
+	}
+
+	languageStr := ctx.Param("language")
+	code, err := c.judgeService.GetJudgeCode(uint(id), languageStr)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{
+			"error": "題目代碼不存在或不支援的程式語言",
+		})
+		return
+	}
+
+	ctx.String(http.StatusOK, code)
+}
+
 // CreateJudge 創建新題目
 // @Summary 創建新題目
 // @Description 創建一個新題目

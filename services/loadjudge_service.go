@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"share-cat/Nepeta-cataria/models"
+	"share-cat/Nepeta-cataria/pkg/language"
 	"share-cat/Nepeta-cataria/pkg/loadjudge"
 	"share-cat/Nepeta-cataria/pkg/makejudge"
 	"share-cat/Nepeta-cataria/repositories"
@@ -121,17 +122,22 @@ func (s *LoadJudgeService) LoadJudge(request LoadJudgeRequest) (*LoadJudgeRespon
 		os.RemoveAll(judgeDir)
 		return nil, fmt.Errorf("載入問題配置失敗: %w", err)
 	}
-
 	for _, lang := range config.Languages {
-		switch strings.ToLower(lang) {
-		case loadjudge.Python:
-			makejudge.GenerateMainSolutionFile(configDir, loadjudge.Python, config)
-		case loadjudge.Cpp:
-			makejudge.GenerateMainSolutionFile(configDir, loadjudge.Cpp, config)
-		case loadjudge.JavaScript:
-			makejudge.GenerateMainSolutionFile(configDir, loadjudge.JavaScript, config)
+		langType, err := language.StringToLanguageType(lang)
+		if err != nil {
+			log.Printf("警告: 不支援的語言 '%s'，將被忽略: %v", lang, err)
+			continue
+		}
+		langStr := string(langType)
+		switch langType {
+		case language.LanguageTypePython:
+			makejudge.GenerateMainSolutionFile(configDir, langStr, config)
+		case language.LanguageTypeCPP:
+			makejudge.GenerateMainSolutionFile(configDir, langStr, config)
+		case language.LanguageTypeJavaScript:
+			makejudge.GenerateMainSolutionFile(configDir, langStr, config)
 		default:
-			log.Printf("警告: 不支援的語言 '%s'，將被忽略", lang)
+			log.Printf("警告: 語言 '%s' 尚未實作程式碼範本生成", lang)
 			continue
 		}
 	}
@@ -204,13 +210,12 @@ func (s *LoadJudgeService) updateJudgeRecord(existingJudge models.Judge, config 
 	}
 
 	fullSetting := map[string]interface{}{
-		"config":         config,
-		"problem_path":   configDir,
-		"test_data_path": filepath.Join(configDir, loadjudge.TestDataDir),
-		"checker_file":   config.Checker.File,
-		"checker_lang":   config.Checker.Language,
-		"fullsetting":    json.RawMessage(settingJSON),
-		"updated_at":     time.Now().Unix(),
+		"config":       config,
+		"problem_path": configDir,
+		"checker_file": config.Checker.File,
+		"checker_lang": config.Checker.Language,
+		"fullsetting":  json.RawMessage(settingJSON),
+		"updated_at":   time.Now().Unix(),
 	}
 
 	fullSettingJSON, err := json.Marshal(fullSetting)
@@ -396,13 +401,12 @@ func (s *LoadJudgeService) createJudgeRecord(config loadjudge.ProblemConfig, cre
 	}
 
 	fullSetting := map[string]interface{}{
-		"config":         config,
-		"problem_path":   configDir,
-		"test_data_path": filepath.Join(configDir, loadjudge.TestDataDir),
-		"checker_file":   config.Checker.File,
-		"checker_lang":   config.Checker.Language,
-		"fullsetting":    json.RawMessage(settingJSON),
-		"created_at":     time.Now().Unix(),
+		"config":       config,
+		"problem_path": configDir,
+		"checker_file": config.Checker.File,
+		"checker_lang": config.Checker.Language,
+		"fullsetting":  json.RawMessage(settingJSON),
+		"created_at":   time.Now().Unix(),
 	}
 
 	fullSettingJSON, err := json.Marshal(fullSetting)

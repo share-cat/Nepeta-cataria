@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+
+	langtype "share-cat/Nepeta-cataria/pkg/language"
 )
 
 type TypeInfo struct {
@@ -13,39 +15,55 @@ type TypeInfo struct {
 }
 
 type LanguageTypeMapping struct {
-	Python     string
-	Cpp        string
-	JavaScript string
-	Import     string
-	Include    string
+	TypeMap map[langtype.LanguageType]string
+	Import  string
+	Include string
+}
+
+// 輔助函數來獲取語言類型映射
+func (ltm LanguageTypeMapping) GetType(lang langtype.LanguageType) string {
+	if typeStr, exists := ltm.TypeMap[lang]; exists {
+		return typeStr
+	}
+	return ""
 }
 
 var baseTypeMap = map[string]LanguageTypeMapping{
 	"int": {
-		Python:     "int",
-		Cpp:        "int",
-		JavaScript: "number",
+		TypeMap: map[langtype.LanguageType]string{
+			langtype.LanguageTypePython:     "int",
+			langtype.LanguageTypeCPP:        "int",
+			langtype.LanguageTypeJavaScript: "number",
+		},
 	},
 	"str": {
-		Python:     "str",
-		Cpp:        "std::string",
-		JavaScript: "string",
-		Include:    "<string>",
+		TypeMap: map[langtype.LanguageType]string{
+			langtype.LanguageTypePython:     "str",
+			langtype.LanguageTypeCPP:        "std::string",
+			langtype.LanguageTypeJavaScript: "string",
+		},
+		Include: "<string>",
 	},
 	"float": {
-		Python:     "float",
-		Cpp:        "float",
-		JavaScript: "number",
+		TypeMap: map[langtype.LanguageType]string{
+			langtype.LanguageTypePython:     "float",
+			langtype.LanguageTypeCPP:        "float",
+			langtype.LanguageTypeJavaScript: "number",
+		},
 	},
 	"double": {
-		Python:     "float",
-		Cpp:        "double",
-		JavaScript: "number",
+		TypeMap: map[langtype.LanguageType]string{
+			langtype.LanguageTypePython:     "float",
+			langtype.LanguageTypeCPP:        "double",
+			langtype.LanguageTypeJavaScript: "number",
+		},
 	},
 	"bool": {
-		Python:     "bool",
-		Cpp:        "bool",
-		JavaScript: "boolean",
+		TypeMap: map[langtype.LanguageType]string{
+			langtype.LanguageTypePython:     "bool",
+			langtype.LanguageTypeCPP:        "bool",
+			langtype.LanguageTypeJavaScript: "boolean",
+		},
 	},
 }
 
@@ -110,15 +128,9 @@ func (ti *TypeInfo) GenerateLanguageType(language string) (string, error) {
 		return "", fmt.Errorf("unsupported base type: %s", ti.BaseType)
 	}
 
-	var currentType string
-	switch language {
-	case Python:
-		currentType = baseMapping.Python
-	case Cpp:
-		currentType = baseMapping.Cpp
-	case JavaScript:
-		currentType = baseMapping.JavaScript
-	default:
+	langType := stringToLanguageType(language)
+	currentType := baseMapping.GetType(langType)
+	if currentType == "" {
 		return "", fmt.Errorf("unsupported language: %s", language)
 	}
 
@@ -131,11 +143,11 @@ func (ti *TypeInfo) GenerateLanguageType(language string) (string, error) {
 
 		var template string
 		switch language {
-		case Python:
+		case string(langtype.LanguageTypePython):
 			template = containerMap["python_template"]
-		case Cpp:
+		case string(langtype.LanguageTypeCPP):
 			template = containerMap["cpp_template"]
-		case JavaScript:
+		case string(langtype.LanguageTypeJavaScript):
 			template = containerMap["javascript_template"]
 		}
 
@@ -151,12 +163,12 @@ func (ti *TypeInfo) GetRequiredImports(language string) []string {
 
 	if baseMapping, exists := baseTypeMap[ti.BaseType]; exists {
 		switch language {
-		case Python:
+		case string(langtype.LanguageTypePython):
 			if baseMapping.Import != "" && !seen[baseMapping.Import] {
 				imports = append(imports, baseMapping.Import)
 				seen[baseMapping.Import] = true
 			}
-		case Cpp:
+		case string(langtype.LanguageTypeCPP):
 			if baseMapping.Include != "" && !seen[baseMapping.Include] {
 				imports = append(imports, baseMapping.Include)
 				seen[baseMapping.Include] = true
@@ -168,9 +180,9 @@ func (ti *TypeInfo) GetRequiredImports(language string) []string {
 		if containerMap, exists := containerTypeMap[container]; exists {
 			var importStr string
 			switch language {
-			case Python:
+			case string(langtype.LanguageTypePython):
 				importStr = containerMap["python_import"]
-			case Cpp:
+			case string(langtype.LanguageTypeCPP):
 				importStr = containerMap["cpp_include"]
 			}
 
@@ -191,15 +203,15 @@ func (ti *TypeInfo) GenerateFunctionParameter(language, paramName string) (strin
 	}
 
 	switch language {
-	case Python:
+	case string(langtype.LanguageTypePython):
 		return fmt.Sprintf("%s: %s", paramName, langType), nil
-	case Cpp:
+	case string(langtype.LanguageTypeCPP):
 		if ti.IsContainer {
 			return fmt.Sprintf("const %s& %s", langType, paramName), nil
 		} else {
 			return fmt.Sprintf("%s %s", langType, paramName), nil
 		}
-	case JavaScript:
+	case string(langtype.LanguageTypeJavaScript):
 		return paramName, nil
 	default:
 		return "", fmt.Errorf("unsupported language: %s", language)
@@ -237,6 +249,15 @@ func ParseTestDataTypes(testConfig TestDataConfig) (inputType *TypeInfo, outputT
 	return inputType, outputType, nil
 }
 
+// 將字符串轉換為語言類型
+func stringToLanguageType(langStr string) langtype.LanguageType {
+	langType, err := langtype.StringToLanguageType(langStr)
+	if err != nil {
+		return langtype.LanguageTypeUnknown
+	}
+	return langType
+}
+
 func Test_Type_Parser() {
 	examples := []string{
 		"int",
@@ -258,7 +279,7 @@ func Test_Type_Parser() {
 			continue
 		}
 
-		for _, lang := range []string{Python, Cpp, JavaScript} {
+		for _, lang := range []string{string(langtype.LanguageTypePython), string(langtype.LanguageTypeCPP), string(langtype.LanguageTypeJavaScript)} {
 			langType, err := typeInfo.GenerateLanguageType(lang)
 			if err != nil {
 				fmt.Printf("%s: Error - %v\n", lang, err)
@@ -274,12 +295,12 @@ func Test_Type_Parser() {
 			}
 		}
 
-		pythonImports := typeInfo.GetRequiredImports(Python)
+		pythonImports := typeInfo.GetRequiredImports(string(langtype.LanguageTypePython))
 		if len(pythonImports) > 0 {
 			fmt.Printf("Python imports: %v\n", pythonImports)
 		}
 
-		cppIncludes := typeInfo.GetRequiredImports(Cpp)
+		cppIncludes := typeInfo.GetRequiredImports(string(langtype.LanguageTypeCPP))
 		if len(cppIncludes) > 0 {
 			fmt.Printf("C++ includes: %v\n", cppIncludes)
 		}

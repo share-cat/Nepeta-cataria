@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"share-cat/Nepeta-cataria/pkg/language"
+
 	"gopkg.in/yaml.v3"
 )
 
@@ -59,14 +61,14 @@ func LoadProblemConfig(problemDir string) (ProblemConfig, error) {
 	if config.Checker.File != "" && config.Checker.Language == "" {
 		ext := strings.ToLower(filepath.Ext(config.Checker.File))
 		if ext == ".py" {
-			config.Checker.Language = Python
+			config.Checker.Language = string(language.LanguageTypePython)
 		} else if ext == ".cpp" || ext == ".cc" {
-			config.Checker.Language = Cpp
+			config.Checker.Language = string(language.LanguageTypeCPP)
 		} else {
 			log.Printf("Warning: Checker language for '%s' not specified and cannot be reliably inferred from extension. Assuming it's executable or Python if script-like.", config.Checker.File)
 		}
 	}
-	if config.Checker.Language != "" && config.Checker.Language != Python && config.Checker.Language != Cpp {
+	if config.Checker.Language != "" && config.Checker.Language != string(language.LanguageTypePython) && config.Checker.Language != string(language.LanguageTypeCPP) {
 		log.Printf("Warning: Checker language '%s' for '%s' is not explicitly supported by this tool's assumptions (Python/Cpp for CatTeaser context). Ensure judge server handles it.", config.Checker.Language, config.Checker.File)
 	}
 

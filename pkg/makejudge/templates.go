@@ -6,6 +6,7 @@ import (
 	"strings"
 	"text/template"
 
+	langtype "share-cat/Nepeta-cataria/pkg/language"
 	"share-cat/Nepeta-cataria/pkg/loadjudge"
 )
 
@@ -89,16 +90,15 @@ func fillTemplateDataWithTypes(td *TemplateData, language string, inputType, out
 	for imp := range allImports {
 		importLines = append(importLines, imp)
 	}
-
 	switch language {
-	case loadjudge.Python:
+	case string(langtype.LanguageTypePython):
 		td.RequiredImports = strings.Join(importLines, "\n")
 		err := generatePythonTemplate(td, inputType, outputType)
 		if err != nil {
 			return err
 		}
 
-	case loadjudge.Cpp:
+	case string(langtype.LanguageTypeCPP):
 		var includeLines []string
 		for _, inc := range importLines {
 			includeLines = append(includeLines, fmt.Sprintf("#include %s", inc))
@@ -116,7 +116,7 @@ func fillTemplateDataWithTypes(td *TemplateData, language string, inputType, out
 			return err
 		}
 
-	case loadjudge.JavaScript:
+	case string(langtype.LanguageTypeJavaScript):
 		err := generateJavaScriptTemplate(td, inputType, outputType)
 		if err != nil {
 			return err
@@ -129,14 +129,14 @@ func fillTemplateDataWithTypes(td *TemplateData, language string, inputType, out
 func generatePythonTemplate(td *TemplateData, inputType, outputType *loadjudge.TypeInfo) error {
 
 	if inputType != nil {
-		inputParam, err := inputType.GenerateFunctionParameter(loadjudge.Python, "input_data")
+		inputParam, err := inputType.GenerateFunctionParameter(string(langtype.LanguageTypePython), "input_data")
 		if err != nil {
 			return fmt.Errorf("failed to generate Python input parameter: %w", err)
 		}
 
 		var outputTypeStr string
 		if outputType != nil {
-			outputTypeStr, err = outputType.GenerateLanguageType(loadjudge.Python)
+			outputTypeStr, err = outputType.GenerateLanguageType(string(langtype.LanguageTypePython))
 			if err != nil {
 				return fmt.Errorf("failed to generate Python output type: %w", err)
 			}
@@ -160,14 +160,14 @@ func generatePythonTemplate(td *TemplateData, inputType, outputType *loadjudge.T
 func generateCppTemplate(td *TemplateData, inputType, outputType *loadjudge.TypeInfo) error {
 
 	if inputType != nil {
-		inputParam, err := inputType.GenerateFunctionParameter(loadjudge.Cpp, "input_data")
+		inputParam, err := inputType.GenerateFunctionParameter(string(langtype.LanguageTypeCPP), "input_data")
 		if err != nil {
 			return fmt.Errorf("failed to generate C++ input parameter: %w", err)
 		}
 
 		var outputTypeStr string
 		if outputType != nil {
-			outputTypeStr, err = outputType.GenerateLanguageType(loadjudge.Cpp)
+			outputTypeStr, err = outputType.GenerateLanguageType(string(langtype.LanguageTypeCPP))
 			if err != nil {
 				return fmt.Errorf("failed to generate C++ output type: %w", err)
 			}
@@ -186,14 +186,14 @@ func generateCppTemplate(td *TemplateData, inputType, outputType *loadjudge.Type
 func generateJavaScriptTemplate(td *TemplateData, inputType, outputType *loadjudge.TypeInfo) error {
 
 	if inputType != nil {
-		inputTypeStr, err := inputType.GenerateLanguageType(loadjudge.JavaScript)
+		inputTypeStr, err := inputType.GenerateLanguageType(string(langtype.LanguageTypeJavaScript))
 		if err != nil {
 			return fmt.Errorf("failed to generate JavaScript input type: %w", err)
 		}
 
 		var outputTypeStr string
 		if outputType != nil {
-			outputTypeStr, err = outputType.GenerateLanguageType(loadjudge.JavaScript)
+			outputTypeStr, err = outputType.GenerateLanguageType(string(langtype.LanguageTypeJavaScript))
 			if err != nil {
 				return fmt.Errorf("failed to generate JavaScript output type: %w", err)
 			}
@@ -217,12 +217,12 @@ func getTemplate(language string) (*template.Template, error) {
 	var tplStr string
 	templateName := "mainSolution"
 	switch language {
-	case loadjudge.Python:
+	case string(langtype.LanguageTypePython):
 		tplStr = pythonMainTemplateStr
-	case loadjudge.Cpp:
+	case string(langtype.LanguageTypeCPP):
 		tplStr = cppMainTemplateStr
 		templateName = "cppSolution"
-	case loadjudge.JavaScript:
+	case string(langtype.LanguageTypeJavaScript):
 		tplStr = javascriptMainTemplateStr
 	default:
 		return nil, fmt.Errorf("unsupported language for template: %s", language)

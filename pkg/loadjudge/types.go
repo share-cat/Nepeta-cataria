@@ -3,15 +3,8 @@ package loadjudge
 const (
 	SampleInputFile  = "sample.in"
 	SampleOutputFile = "sample.out"
-	TestDataDir      = "data"
 	ConfigFileName   = "config.yaml"
 	TestDataYamlFile = "testdata.yaml"
-)
-
-const (
-	Python     = "python"
-	Cpp        = "cpp"
-	JavaScript = "javascript"
 )
 
 type ProblemConfig struct {

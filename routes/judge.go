@@ -13,6 +13,7 @@ func SetupJudgeRoutes(router *gin.RouterGroup, judgeController *controllers.Judg
 	{
 		publicJudges.GET("", judgeController.GetJudges)
 		publicJudges.GET("/:id", judgeController.GetJudge)
+		publicJudges.GET("/:id/code/:language", judgeController.GetJudgeCode)
 
 		// 根據標籤獲取題目
 		publicJudges.GET("/tags", judgeController.GetJudgesByTags)

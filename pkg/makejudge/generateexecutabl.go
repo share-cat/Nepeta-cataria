@@ -3,6 +3,7 @@ package makejudge
 import (
 	"encoding/json"
 	"fmt"
+	langtype "share-cat/Nepeta-cataria/pkg/language"
 	"share-cat/Nepeta-cataria/pkg/loadjudge"
 	"strings"
 )
@@ -139,14 +140,19 @@ func GenerateExecutableCodeWithSettingData(testData SettingData, testCase loadju
 	var template string
 	var imports string
 
-	switch strings.ToLower(language) {
-	case loadjudge.Python:
+	langType, err := langtype.StringToLanguageType(language)
+	if err != nil {
+		return "", fmt.Errorf("不支援的語言: %s", language)
+	}
+
+	switch langType {
+	case langtype.LanguageTypePython:
 		template = pythonExecutableTemplate
 		imports = generateImportsForPython(inputType, outputType)
-	case loadjudge.Cpp:
+	case langtype.LanguageTypeCPP:
 		template = cppExecutableTemplate
 		imports = generateIncludesForCpp(inputType, outputType)
-	case loadjudge.JavaScript:
+	case langtype.LanguageTypeJavaScript:
 		template = jsExecutableTemplate
 		imports = ""
 	default:
@@ -175,14 +181,19 @@ func GenerateExecutableCodeWithTestData(testData loadjudge.TestDataConfig, testC
 	var template string
 	var imports string
 
-	switch strings.ToLower(language) {
-	case loadjudge.Python:
+	langType, err := langtype.StringToLanguageType(language)
+	if err != nil {
+		return "", fmt.Errorf("不支援的語言: %s", language)
+	}
+
+	switch langType {
+	case langtype.LanguageTypePython:
 		template = pythonExecutableTemplate
 		imports = generateImportsForPython(inputType, outputType)
-	case loadjudge.Cpp:
+	case langtype.LanguageTypeCPP:
 		template = cppExecutableTemplate
 		imports = generateIncludesForCpp(inputType, outputType)
-	case loadjudge.JavaScript:
+	case langtype.LanguageTypeJavaScript:
 		template = jsExecutableTemplate
 		imports = ""
 	default:
@@ -200,13 +211,13 @@ func generateImportsForPython(inputType, outputType *loadjudge.TypeInfo) string 
 	imports := make(map[string]bool)
 
 	if inputType != nil {
-		for _, imp := range inputType.GetRequiredImports(loadjudge.Python) {
+		for _, imp := range inputType.GetRequiredImports(string(langtype.LanguageTypePython)) {
 			imports[imp] = true
 		}
 	}
 
 	if outputType != nil {
-		for _, imp := range outputType.GetRequiredImports(loadjudge.Python) {
+		for _, imp := range outputType.GetRequiredImports(string(langtype.LanguageTypePython)) {
 			imports[imp] = true
 		}
 	}
@@ -228,13 +239,13 @@ func generateIncludesForCpp(inputType, outputType *loadjudge.TypeInfo) string {
 	}
 
 	if inputType != nil {
-		for _, inc := range inputType.GetRequiredImports(loadjudge.Cpp) {
+		for _, inc := range inputType.GetRequiredImports(string(langtype.LanguageTypeCPP)) {
 			includes[fmt.Sprintf("#include %s", inc)] = true
 		}
 	}
 
 	if outputType != nil {
-		for _, inc := range outputType.GetRequiredImports(loadjudge.Cpp) {
+		for _, inc := range outputType.GetRequiredImports(string(langtype.LanguageTypeCPP)) {
 			includes[fmt.Sprintf("#include %s", inc)] = true
 		}
 	}
