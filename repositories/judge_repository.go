@@ -56,7 +56,7 @@ func (r *JudgeRepository) GetJudgesWithFilters(search, judgeType string, page in
 // GetByID 根據ID獲取題目
 func (r *JudgeRepository) GetByID(id uint) (models.Judge, error) {
 	var judge models.Judge
-	result := r.db.Preload("Creator").Preload("Solutions").First(&judge, id)
+	result := r.db.Preload("Creator").First(&judge, id)
 	return judge, result.Error
 }
 

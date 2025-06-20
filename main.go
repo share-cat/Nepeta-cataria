@@ -28,10 +28,13 @@ func main() {
 		log.Fatal(err)
 	}
 	server := gin.Default()
-	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowAllOrigins = true
+	corsConf := cors.DefaultConfig()
+	corsConf.AllowAllOrigins = true
+	corsConf.AllowMethods = []string{"GET", "POST", "DELETE", "OPTIONS", "PUT"}
+	corsConf.AllowHeaders = []string{"Authorization", "Content-Type", "Upgrade", "Origin",
+		"Connection", "Accept-Encoding", "Accept-Language", "Host", "Access-Control-Request-Method", "Access-Control-Request-Headers"}
 	server.Use(gin.Logger())
-	server.Use(cors.New(corsConfig))
+	server.Use(cors.New(corsConf))
 
 	app := boot.NewApplication(global.DB)
 	routes.SetupRouter(server, global.DB, app.Controllers)
