@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -155,6 +156,7 @@ func (c *JudgeController) GetJudgeCode(ctx *gin.Context) {
 	languageStr := ctx.Param("language")
 	code, err := c.judgeService.GetJudgeCode(uint(id), languageStr)
 	if err != nil {
+		fmt.Printf("Error getting judge code: %v\n", err)
 		ctx.JSON(http.StatusNotFound, gin.H{
 			"error": "題目代碼不存在或不支援的程式語言",
 		})

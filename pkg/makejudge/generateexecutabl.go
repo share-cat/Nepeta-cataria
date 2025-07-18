@@ -11,7 +11,6 @@ import (
 const pythonExecutableTemplate = `{{.Import}}
 import json
 import sys
-import time
 from typing import Any, List, Dict
 
 {{.UserCode}}
@@ -19,34 +18,24 @@ from typing import Any, List, Dict
 def run_single_test():
     test_case = {{.TestData}}
     try:
-        start_time = time.time()
         input_data = json.loads(test_case["input"])
         result = main(input_data)
-        actual_output = json.dumps(result) if not isinstance(result, str) else result
-        result_data = {
-            "name": test_case["name"],            
-            "input": test_case["input"],
-            "actual": actual_output,
-            "error": "",
-        }
+        if isinstance(result, str):
+            print(result)
+        else:
+            print(json.dumps(result))
     except Exception as e:
-        result_data = {
-            "name": test_case["name"],
-            "input": test_case["input"],
-            "actual": "",
-            "error": str(e)
-        }
-    return result_data
+        print(e, file=sys.stderr)
+        sys.exit(1)
+
 if __name__ == "__main__":
-    result = run_single_test()
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    run_single_test()
 `
 
 const cppExecutableTemplate = `{{.Import}}
 #include <iostream>
 #include <string>
 #include <vector>
-#include <chrono>
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -56,35 +45,16 @@ using namespace std;
 
 int main() {
     json test_case = R"({{.TestData}})"_json;
-    json result_data;
     
     try {
-        auto start = chrono::high_resolution_clock::now();
         auto input_data = json::parse(test_case["input"].get<string>());
         auto result = solve(input_data);
-        auto end = chrono::high_resolution_clock::now();
-        auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
-        
-        json actual_json = result;
-        string actual_output = actual_json.dump();
-        
-        result_data = {
-            {"name", test_case["name"]},
-            {"input", test_case["input"]},
-            {"actual", actual_output},
-            {"error", ""}
-        };
-        
+        cout << result << endl;
     } catch (const exception& e) {
-        result_data = {
-            {"name", test_case["name"]},
-            {"input", test_case["input"]},
-            {"actual", ""},
-            {"error", e.what()}
-        };
+        cerr << e.what() << endl;
+        return 1;
     }
     
-    cout << result_data.dump(2) << endl;
     return 0;
 }
 `
@@ -97,32 +67,21 @@ function runSingleTest() {
     const testCase = {{.TestData}};
     
     try {
-        const startTime = Date.now();
         const inputData = JSON.parse(testCase.input);
         const result = main(inputData);
-        const actualOutput = typeof result === 'string' ? result : JSON.stringify(result);
         
-        const resultData = {
-            name: testCase.name,
-            input: testCase.input,
-            actual: actualOutput,
-            error: ""
-        };
-        
-        return resultData;
-        
+        if (typeof result === 'string') {
+            console.log(result);
+        } else {
+            console.log(JSON.stringify(result));
+        }
     } catch (error) {
-        return {
-            name: testCase.name,
-            input: testCase.input,
-            actual: "",
-            error: error.message
-        };
+        console.error(error.message);
+        process.exit(1);
     }
 }
 
-const result = runSingleTest();
-console.log(JSON.stringify(result, null, 2));
+runSingleTest();
 `
 
 func GenerateExecutableCodeWithSettingData(testData SettingData, testCase loadjudge.TestCase, userCode string, language string) (string, error) {
