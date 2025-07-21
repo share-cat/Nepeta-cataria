@@ -14,22 +14,22 @@ import (
 
 type Judge struct {
 	gorm.Model
-	Name         string         `gorm:"type:varchar(255);not null"`
-	Description  string         `gorm:"type:text"`
-	Readme       string         `gorm:"type:text"`
-	CreatorID    int            `gorm:"not null"`
-	Tags         pq.StringArray `gorm:"type:text[];column:tag"`
-	Langs        pq.StringArray `gorm:"type:text[]"`
-	Type         string         `gorm:"type:varchar(255);not null"`
-	MemoryLimit  int            `gorm:"default:0"`
-	TimeLimit    int            `gorm:"default:0"`
-	CheckType    string         `gorm:"type:varchar(255);not null"`
-	IsActive     bool           `gorm:"default:true"`
-	Difficulty   int            `gorm:"default:0"`
-	FullSetting  pgtype.JSONB   `gorm:"type:jsonb;default:'{}'"`
-	Creator      User           `gorm:"foreignKey:CreatorID"`
-	Solutions    []Solution     `gorm:"foreignKey:JudgeID"`
-	ChatSessions []ChatSession  `gorm:"foreignKey:JudgeID"`
+	Name         string         `json:"name" gorm:"type:varchar(255);not null"`
+	Description  string         `json:"description" gorm:"type:text"`
+	Readme       string         `json:"readme" gorm:"type:text"`
+	CreatorID    int            `json:"creator_id" gorm:"not null"`
+	Tags         pq.StringArray `json:"tags" gorm:"type:text[];column:tag"`
+	Langs        pq.StringArray `json:"langs" gorm:"type:text[]"`
+	Type         string         `json:"type" gorm:"type:varchar(255);not null"`
+	MemoryLimit  int            `json:"memory_limit" gorm:"default:0"`
+	TimeLimit    int            `json:"time_limit" gorm:"default:0"`
+	CheckType    string         `json:"check_type" gorm:"type:varchar(255);not null"`
+	IsActive     bool           `json:"is_active" gorm:"default:true"`
+	Difficulty   int            `json:"difficulty" gorm:"default:0"`
+	FullSetting  pgtype.JSONB   `json:"-" gorm:"type:jsonb;default:'{}'"`
+	Creator      User           `json:"creator,omitempty" gorm:"foreignKey:CreatorID"`
+	Solutions    []Solution     `json:"solutions,omitempty" gorm:"foreignKey:JudgeID"`
+	ChatSessions []ChatSession  `json:"chat_sessions,omitempty" gorm:"foreignKey:JudgeID"`
 }
 
 func (e *Judge) GetSetting() makejudge.SettingData {
@@ -100,17 +100,17 @@ type Social struct {
 type Solution struct {
 	gorm.Model
 
-	UserID      int       `gorm:"not null;index"`
-	JudgeID     int       `gorm:"not null;index"`
-	SubmittedAt time.Time `gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP"`
-	Code        string    `gorm:"type:text;not null"`
-	LanguageID  int       `gorm:"not null"`
-	Status      string    `gorm:"type:varchar(255);not null;default:'pending'"`
+	UserID      int       `json:"user_id" gorm:"not null;index"`
+	JudgeID     int       `json:"judge_id" gorm:"not null;index"`
+	SubmittedAt time.Time `json:"submitted_at" gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP"`
+	Code        string    `json:"code" gorm:"type:text;not null"`
+	LanguageID  int       `json:"language_id" gorm:"not null"`
+	Status      string    `json:"status" gorm:"type:varchar(255);not null;default:'pending'"`
 
-	User     User           `gorm:"foreignKey:UserID"`
-	Judge    Judge          `gorm:"foreignKey:JudgeID"`
-	Language SupportLang    `gorm:"foreignKey:LanguageID"`
-	Tasks    []SolutionTask `gorm:"foreignKey:SolutionID"`
+	User     User           `json:"user,omitempty" gorm:"foreignKey:UserID"`
+	Judge    Judge          `json:"judge,omitempty" gorm:"foreignKey:JudgeID"`
+	Language SupportLang    `json:"language,omitempty" gorm:"foreignKey:LanguageID"`
+	Tasks    []SolutionTask `json:"tasks,omitempty" gorm:"foreignKey:SolutionID"`
 }
 
 type SolutionTask struct {
@@ -185,13 +185,13 @@ type UserProfile struct {
 type ChatSession struct {
 	// Ai 聊天紀錄
 	gorm.Model
-	UserID      int          `gorm:"not null;index"`
-	JudgeID     int          `gorm:"not null;index"`
-	Title       string       `gorm:"type:varchar(255);not null"`
-	ChatHistory pgtype.JSONB `gorm:"type:jsonb"`
+	UserID      int          `json:"user_id" gorm:"not null;index"`
+	JudgeID     int          `json:"judge_id" gorm:"not null;index"`
+	Title       string       `json:"title" gorm:"type:varchar(255);not null"`
+	ChatHistory pgtype.JSONB `json:"-" gorm:"type:jsonb"`
 
-	User  User  `gorm:"foreignKey:UserID"`
-	Judge Judge `gorm:"foreignKey:JudgeID"`
+	User  User  `json:"user,omitempty" gorm:"foreignKey:UserID"`
+	Judge Judge `json:"judge,omitempty" gorm:"foreignKey:JudgeID"`
 }
 
 type Discussion struct {

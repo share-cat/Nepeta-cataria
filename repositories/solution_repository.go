@@ -20,12 +20,10 @@ func NewSolutionRepository(db *gorm.DB) *SolutionRepository {
 func (r *SolutionRepository) GetAll() ([]models.Solution, error) {
 	var solutions []models.Solution
 	result := r.db.Select("solutions.*").
-		// Preload("User").
-		// Preload("Judge", func(db *gorm.DB) *gorm.DB {
-		// 	return db.Select("id, name, description, creator_id, type, memory_limit, time_limit, check_type, is_active, difficulty")
-		// }).
-		// Preload("Language").
-		// Preload("Tasks").
+		Preload("User").
+		Preload("Judge").
+		Preload("Language").
+		Preload("Tasks").
 		Find(&solutions)
 	return solutions, result.Error
 }
@@ -35,9 +33,7 @@ func (r *SolutionRepository) GetByID(id uint) (models.Solution, error) {
 	var solution models.Solution
 	result := r.db.Select("solutions.*").
 		Preload("User").
-		Preload("Judge", func(db *gorm.DB) *gorm.DB {
-			return db.Select("id, name, description, creator_id, type, memory_limit, time_limit, check_type, is_active, difficulty")
-		}).
+		Preload("Judge").
 		Preload("Language").
 		Preload("Tasks").
 		First(&solution, id)
