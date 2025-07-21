@@ -19,14 +19,28 @@ func NewSolutionRepository(db *gorm.DB) *SolutionRepository {
 // GetAll 獲取所有答案
 func (r *SolutionRepository) GetAll() ([]models.Solution, error) {
 	var solutions []models.Solution
-	result := r.db.Preload("User").Preload("Judge").Preload("Language").Find(&solutions)
+	result := r.db.Select("solutions.*").
+		// Preload("User").
+		// Preload("Judge", func(db *gorm.DB) *gorm.DB {
+		// 	return db.Select("id, name, description, creator_id, type, memory_limit, time_limit, check_type, is_active, difficulty")
+		// }).
+		// Preload("Language").
+		// Preload("Tasks").
+		Find(&solutions)
 	return solutions, result.Error
 }
 
 // GetByID 根據ID獲取答案
 func (r *SolutionRepository) GetByID(id uint) (models.Solution, error) {
 	var solution models.Solution
-	result := r.db.Preload("User").Preload("Judge").Preload("Language").First(&solution, id)
+	result := r.db.Select("solutions.*").
+		Preload("User").
+		Preload("Judge", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id, name, description, creator_id, type, memory_limit, time_limit, check_type, is_active, difficulty")
+		}).
+		Preload("Language").
+		Preload("Tasks").
+		First(&solution, id)
 	return solution, result.Error
 }
 
@@ -36,6 +50,7 @@ func (r *SolutionRepository) GetByUserID(userID uint) ([]models.Solution, error)
 	result := r.db.Where("user_id = ?", userID).
 		Preload("Judge").
 		Preload("Language").
+		Preload("Tasks").
 		Find(&solutions)
 	return solutions, result.Error
 }
@@ -46,6 +61,7 @@ func (r *SolutionRepository) GetByJudgeID(judgeID uint) ([]models.Solution, erro
 	result := r.db.Where("judge_id = ?", judgeID).
 		Preload("User").
 		Preload("Language").
+		Preload("Tasks").
 		Find(&solutions)
 	return solutions, result.Error
 }
@@ -64,16 +80,20 @@ func (r *SolutionRepository) Update(solution models.Solution) error {
 	return r.db.Save(&solution).Error
 }
 
-// UpdateStatus 更新答案狀態
+// UpdateStatus 更新答案狀態 (已棄用，改用 UpdateSolutionStatus)
 func (r *SolutionRepository) UpdateStatus(id uint, status string, executionTime, memoryUsage, score int) error {
 	return r.db.Model(&models.Solution{}).
 		Where("id = ?", id).
 		Updates(map[string]interface{}{
-			"status":         status,
-			"execution_time": executionTime,
-			"memory_usage":   memoryUsage,
-			"score":          score,
+			"status": status,
 		}).Error
+}
+
+// UpdateSolutionStatus 更新解答狀態
+func (r *SolutionRepository) UpdateSolutionStatus(id uint, status string) error {
+	return r.db.Model(&models.Solution{}).
+		Where("id = ?", id).
+		Update("status", status).Error
 }
 
 // Delete 刪除答案
@@ -89,6 +109,7 @@ func (r *SolutionRepository) GetLatestSolutions(limit int) ([]models.Solution, e
 		Preload("User").
 		Preload("Judge").
 		Preload("Language").
+		Preload("Tasks").
 		Find(&solutions)
 	return solutions, result.Error
 }
@@ -96,17 +117,27 @@ func (r *SolutionRepository) GetLatestSolutions(limit int) ([]models.Solution, e
 // GetBestSolutions 獲取評分最高的答案
 func (r *SolutionRepository) GetBestSolutions(judgeID uint, limit int) ([]models.Solution, error) {
 	var solutions []models.Solution
-	query := r.db.Where("status = ?", "accepted")
+
+	subQuery := r.db.Table("solution_tasks").
+		Select("solution_id, SUM(execution_time) as total_execution_time, SUM(memory_usage) as total_memory_usage").
+		Where("status = ?", "accepted").
+		Group("solution_id")
+
+	query := r.db.Table("solutions").
+		Select("solutions.*, task_stats.total_execution_time, task_stats.total_memory_usage").
+		Joins("JOIN (?) as task_stats ON solutions.id = task_stats.solution_id", subQuery).
+		Where("solutions.status = ?", "accepted")
 
 	if judgeID > 0 {
-		query = query.Where("judge_id = ?", judgeID)
+		query = query.Where("solutions.judge_id = ?", judgeID)
 	}
 
-	result := query.Order("score desc").
+	result := query.Order("task_stats.total_memory_usage ASC, task_stats.total_execution_time ASC").
 		Limit(limit).
 		Preload("User").
 		Preload("Judge").
 		Preload("Language").
+		Preload("Tasks").
 		Find(&solutions)
 	return solutions, result.Error
 }

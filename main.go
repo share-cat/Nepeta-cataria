@@ -67,6 +67,7 @@ func dbInit() {
 		&models.School{},
 		&models.Social{},
 		&models.Solution{},
+		&models.SolutionTask{},
 		&models.SubmitEffect{},
 		&models.SupportLang{},
 		&models.SystemConfig{},

@@ -20,6 +20,19 @@ definitions:
       username:
         type: string
     type: object
+  controllers.PaginatedJudgeResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.Judge'
+        type: array
+      page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
   controllers.RefreshTokenRequest:
     properties:
       refresh_token:
@@ -267,8 +280,6 @@ definitions:
         type: string
       deletedAt:
         $ref: '#/definitions/gorm.DeletedAt'
-      executionTime:
-        type: integer
       id:
         type: integer
       judge:
@@ -279,20 +290,52 @@ definitions:
         $ref: '#/definitions/models.SupportLang'
       languageID:
         type: integer
-      memoryUsage:
-        type: integer
-      score:
-        type: integer
       status:
         type: string
       submittedAt:
         type: string
+      tasks:
+        items:
+          $ref: '#/definitions/models.SolutionTask'
+        type: array
       updatedAt:
         type: string
       user:
         $ref: '#/definitions/models.User'
       userID:
         type: integer
+    type: object
+  models.SolutionTask:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      executionTime:
+        type: integer
+      exitCode:
+        type: integer
+      id:
+        type: integer
+      memoryUsage:
+        type: integer
+      score:
+        type: integer
+      solution:
+        $ref: '#/definitions/models.Solution'
+      solutionID:
+        type: integer
+      status:
+        type: string
+      stderr:
+        type: string
+      stdout:
+        type: string
+      taskIndex:
+        description: 測試案例的索引
+        type: integer
+      updatedAt:
+        type: string
     type: object
   models.SubmitEffect:
     properties:
@@ -1379,17 +1422,45 @@ paths:
     get:
       consumes:
       - application/json
-      description: 獲取所有題目的列表
+      description: 獲取題目列表，支援搜尋、類型篩選、分頁和活躍狀態篩選
+      parameters:
+      - description: 搜尋關鍵字（支援名稱和描述搜尋）
+        in: query
+        name: search
+        type: string
+      - description: 題目類型篩選
+        in: query
+        name: type
+        type: string
+      - default: 1
+        description: 頁碼（預設為1）
+        in: query
+        name: page
+        type: integer
+      - description: 只顯示活躍題目（true/false）
+        in: query
+        name: active
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/models.Judge'
-            type: array
-      summary: 獲取所有題目
+            $ref: '#/definitions/controllers.PaginatedJudgeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取題目列表
       tags:
       - judges
     post:
@@ -1524,6 +1595,44 @@ paths:
       security:
       - BearerAuth: []
       summary: 更新題目
+      tags:
+      - judges
+  /judges/{id}/code/{language}:
+    get:
+      consumes:
+      - application/json
+      description: 根據題目ID和程式語言獲取題目代碼
+      parameters:
+      - description: Judge ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Programming Language (e.g., python, cpp)
+        in: path
+        name: language
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Code content
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取題目代碼
       tags:
       - judges
   /judges/{id}/solutions:
@@ -2139,6 +2248,118 @@ paths:
       summary: 更新社交欄位
       tags:
       - socials
+  /solution-tasks/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 刪除特定任務
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: 刪除任務
+      tags:
+      - solution-tasks
+    get:
+      consumes:
+      - application/json
+      description: 根據ID獲取特定任務
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SolutionTask'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取特定任務
+      tags:
+      - solution-tasks
+  /solution-tasks/{id}/status:
+    put:
+      consumes:
+      - application/json
+      description: 更新特定任務的狀態和結果
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Task Status
+        in: body
+        name: status
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: 更新任務狀態
+      tags:
+      - solution-tasks
   /solutions:
     get:
       consumes:
@@ -2248,31 +2469,24 @@ paths:
       summary: 獲取特定答案
       tags:
       - solutions
-  /solutions/{id}/result:
-    put:
+  /solutions/{solution_id}/summary:
+    get:
       consumes:
       - application/json
-      description: 更新特定答案的評分結果
+      description: 獲取解答的匯總統計資訊
       parameters:
       - description: Solution ID
         in: path
-        name: id
+        name: solution_id
         required: true
         type: string
-      - description: Solution Result
-        in: body
-        name: result
-        required: true
-        schema:
-          type: object
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            additionalProperties:
-              type: string
+            additionalProperties: true
             type: object
         "400":
           description: Bad Request
@@ -2286,11 +2500,44 @@ paths:
             additionalProperties:
               type: string
             type: object
-      security:
-      - BearerAuth: []
-      summary: 更新答案結果
+      summary: 獲取解答匯總資訊
       tags:
-      - solutions
+      - solution-tasks
+  /solutions/{solution_id}/tasks:
+    get:
+      consumes:
+      - application/json
+      description: 獲取特定解答的所有任務
+      parameters:
+      - description: Solution ID
+        in: path
+        name: solution_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.SolutionTask'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取解答的所有任務
+      tags:
+      - solution-tasks
   /solutions/best:
     get:
       consumes:

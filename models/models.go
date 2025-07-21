@@ -100,19 +100,32 @@ type Social struct {
 type Solution struct {
 	gorm.Model
 
-	UserID        int       `gorm:"not null;index"`
-	JudgeID       int       `gorm:"not null;index"`
-	SubmittedAt   time.Time `gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP"`
-	Code          string    `gorm:"type:text;not null"`
-	LanguageID    int       `gorm:"not null"`
-	Status        string    `gorm:"type:varchar(255);not null;default:'pending'"`
-	ExecutionTime int       `gorm:"default:0"`
-	MemoryUsage   int       `gorm:"default:0"`
-	Score         int       `gorm:"default:0"`
+	UserID      int       `gorm:"not null;index"`
+	JudgeID     int       `gorm:"not null;index"`
+	SubmittedAt time.Time `gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP"`
+	Code        string    `gorm:"type:text;not null"`
+	LanguageID  int       `gorm:"not null"`
+	Status      string    `gorm:"type:varchar(255);not null;default:'pending'"`
 
-	User     User        `gorm:"foreignKey:UserID"`
-	Judge    Judge       `gorm:"foreignKey:JudgeID"`
-	Language SupportLang `gorm:"foreignKey:LanguageID"`
+	User     User           `gorm:"foreignKey:UserID"`
+	Judge    Judge          `gorm:"foreignKey:JudgeID"`
+	Language SupportLang    `gorm:"foreignKey:LanguageID"`
+	Tasks    []SolutionTask `gorm:"foreignKey:SolutionID"`
+}
+
+type SolutionTask struct {
+	gorm.Model
+	SolutionID    uint   `gorm:"not null;index"`
+	TaskIndex     int    `gorm:"not null"`
+	Status        string `gorm:"type:varchar(255);not null;default:'pending'"`
+	ExecutionTime int64  `gorm:"default:0"`
+	MemoryUsage   int64  `gorm:"default:0"`
+	Score         int    `gorm:"default:0"`
+	Stdout        string `gorm:"type:text"`
+	Stderr        string `gorm:"type:text"`
+	ExitCode      int    `gorm:"default:0"`
+
+	Solution Solution `gorm:"foreignKey:SolutionID"`
 }
 
 type SupportLang struct {

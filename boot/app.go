@@ -16,6 +16,7 @@ type Repositories struct {
 	SchoolRepo       *repositories.SchoolRepository
 	SocialRepo       *repositories.SocialRepository
 	SolutionRepo     *repositories.SolutionRepository
+	SolutionTaskRepo *repositories.SolutionTaskRepository
 	SubmiteffectRepo *repositories.SubmitEffectRepository
 	SupportLangRepo  *repositories.SupportLangRepository
 	UserRepo         *repositories.UserRepository
@@ -31,6 +32,7 @@ type Services struct {
 	SchoolService       *services.SchoolService
 	SocialService       *services.SocialService
 	SolutionService     *services.SolutionService
+	SolutionTaskService *services.SolutionTaskService
 	SubmitEffectService *services.SubmitEffectService
 	SupportLangService  *services.SupportLangService
 	UserService         *services.UserService
@@ -50,6 +52,7 @@ type Controllers struct {
 	UserController         *controllers.UserController
 	JudgeController        *controllers.JudgeController
 	SolutionController     *controllers.SolutionController
+	SolutionTaskController *controllers.SolutionTaskController
 }
 
 type Application struct {
@@ -67,6 +70,7 @@ func NewRepositories(db *gorm.DB) Repositories {
 		SchoolRepo:       repositories.NewSchoolRepository(db),
 		SocialRepo:       repositories.NewSocialRepository(db),
 		SolutionRepo:     repositories.NewSolutionRepository(db),
+		SolutionTaskRepo: repositories.NewSolutionTaskRepository(db),
 		SubmiteffectRepo: repositories.NewSubmitEffectRepository(db),
 		SupportLangRepo:  repositories.NewSupportLangRepository(db),
 		UserRepo:         repositories.NewUserRepository(db),
@@ -84,6 +88,7 @@ func NewServices(repos Repositories) Services {
 		SchoolService:       services.NewSchoolService(repos.SchoolRepo),
 		SocialService:       services.NewSocialService(repos.SocialRepo),
 		SolutionService:     services.NewSolutionService(repos.SolutionRepo, repos.UserRepo, repos.JudgeRepo, repos.SupportLangRepo),
+		SolutionTaskService: services.NewSolutionTaskService(repos.SolutionTaskRepo, repos.SolutionRepo),
 		SubmitEffectService: services.NewSubmitEffectService(repos.SubmiteffectRepo),
 		SupportLangService:  services.NewSupportLangService(repos.SupportLangRepo),
 		UserService:         services.NewUserService(repos.UserRepo),
@@ -104,7 +109,8 @@ func NewControllers(services Services) Controllers {
 		UserProfileController:  controllers.NewUserProfileController(services.UserProfileService),
 		UserController:         controllers.NewUserController(services.UserService),
 		JudgeController:        controllers.NewJudgeController(services.JudgeService),
-		SolutionController:     controllers.NewSolutionController(services.SolutionService, services.JudgeService, services.SupportLangService),
+		SolutionController:     controllers.NewSolutionController(services.SolutionService, services.SolutionTaskService, services.JudgeService, services.SupportLangService),
+		SolutionTaskController: controllers.NewSolutionTaskController(services.SolutionTaskService),
 	}
 }
 

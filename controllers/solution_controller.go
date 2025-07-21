@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/base64"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -14,16 +15,23 @@ import (
 )
 
 type SolutionController struct {
-	solutionService *services.SolutionService
-	judgeService    *services.JudgeService
-	langService     *services.SupportLangService
+	solutionService     *services.SolutionService
+	solutionTaskService *services.SolutionTaskService
+	judgeService        *services.JudgeService
+	langService         *services.SupportLangService
 }
 
-func NewSolutionController(solutionService *services.SolutionService, judgeService *services.JudgeService, langService *services.SupportLangService) *SolutionController {
+func NewSolutionController(
+	solutionService *services.SolutionService,
+	solutionTaskService *services.SolutionTaskService,
+	judgeService *services.JudgeService,
+	langService *services.SupportLangService,
+) *SolutionController {
 	return &SolutionController{
-		solutionService: solutionService,
-		judgeService:    judgeService,
-		langService:     langService,
+		solutionService:     solutionService,
+		solutionTaskService: solutionTaskService,
+		judgeService:        judgeService,
+		langService:         langService,
 	}
 }
 
@@ -52,6 +60,8 @@ func (c *SolutionController) GetSolutions(ctx *gin.Context) {
 	} else {
 		solutions, err = c.solutionService.GetAllSolutions()
 	}
+
+	fmt.Printf("Solutions: %+v\n", solutions)
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -172,12 +182,13 @@ func (c *SolutionController) SubmitSolution(ctx *gin.Context) {
 	client := catwheel.NewClient("http://localhost:3200")
 	judgedatasetting := judgedata.GetSetting()
 
-	//TODO: 暫時這樣處理 一定要重構!!!
-	var solutionex *catwheel.ExecuteResponse
-	var totalExecutionTime int64 = 0
-	var totalMemoryUsed int64 = 0
-	var overallSuccess bool = true
-	var overallStatus string = "COMPLETED"
+	tasks, err := c.solutionTaskService.CreateTasksForSolution(createdSolution.ID, len(judgedatasetting.TestCases))
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": "創建任務失敗: " + err.Error(),
+		})
+		return
+	}
 
 	unb64code, err := base64.StdEncoding.DecodeString(submission.Code)
 	if err != nil {
@@ -187,11 +198,19 @@ func (c *SolutionController) SubmitSolution(ctx *gin.Context) {
 		return
 	}
 
-	for _, testcase := range judgedatasetting.TestCases {
+	var overallSuccess bool = true
+	var overallStatus string = "accepted"
+
+	// TODO: 統一返回代號 確認執行後端返回代碼
+	for i, testcase := range judgedatasetting.TestCases {
+		if i >= len(tasks) {
+			break
+		}
+
 		executeCode, err := makejudge.GenerateExecutableCodeWithSettingData(judgedatasetting, testcase, string(unb64code), submission.Language)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"error": "生成可執行代碼失敗: " + err.Error(), //TODO: 以後記得刪除
+				"error": "生成可執行代碼失敗: " + err.Error(),
 			})
 			return
 		}
@@ -221,131 +240,76 @@ func (c *SolutionController) SubmitSolution(ctx *gin.Context) {
 			return
 		}
 
-		if solutionex == nil {
-			solutionex = solution_res
-		}
-
-		totalExecutionTime += solution_res.Result.ExecutionTime
-		totalMemoryUsed += solution_res.Result.MemoryUsed
-
+		taskStatus := solution_res.Result.Status
 		if !solution_res.Success {
 			overallSuccess = false
-		}
-
-		switch solution_res.Result.Status {
-		case "Failed", "Timeout", "MemoryLimit", "RuntimeError":
-			overallSuccess = false
-			overallStatus = solution_res.Result.Status
+			overallStatus = taskStatus
 		}
 
 		if solution_res.Result.ExitCode != 0 {
 			overallSuccess = false
-			if overallStatus == "COMPLETED" {
-				overallStatus = "RUNTIME_ERROR"
+			if taskStatus == "COMPLETED" {
+				taskStatus = "RUNTIME_ERROR"
+				overallStatus = "runtime_error"
 			}
 		}
 
+		fmt.Println("Test Case Output:", solution_res.Result.Stdout)
+		fmt.Println("Expected Output:", testcase.Output)
+
 		if solution_res.Result.GetStdout() != testcase.Output {
 			overallSuccess = false
-			overallStatus = "Answer Error"
+			taskStatus = "WRONG_ANSWER"
+			overallStatus = "wrong_answer"
+		} else if taskStatus == "COMPLETED" {
+			taskStatus = "ACCEPTED"
 		}
 
-		solutionex = solution_res
+		_, err = c.solutionTaskService.UpdateTaskFromExecution(*solution_res, tasks[i].ID)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"error": "更新任務結果失敗: " + err.Error(),
+			})
+			return
+		}
+
+		score := 0
+		if taskStatus == "ACCEPTED" {
+			score = 100
+		}
+		err = c.solutionTaskService.UpdateTaskStatus(tasks[i].ID, taskStatus, solution_res.Result.ExecutionTime, solution_res.Result.MemoryUsed, score)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"error": "更新任務狀態失敗: " + err.Error(),
+			})
+			return
+		}
 	}
 
 	if overallSuccess {
-		overallStatus = "ACCEPTED"
+		overallStatus = "accepted"
 	}
 
-	if solutionex == nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": "執行結果為空",
-		})
-		return
-	}
-
-	aggregatedResult := catwheel.ExecuteResponse{
-		ExecutionID: solutionex.ExecutionID,
-		Success:     overallSuccess,
-		Result: catwheel.ExecutionResult{
-			ID:            solutionex.Result.ID,
-			Status:        overallStatus,
-			Stdout:        solutionex.Result.Stdout,
-			Stderr:        solutionex.Result.Stderr,
-			ExitCode:      solutionex.Result.ExitCode,
-			ExecutionTime: totalExecutionTime,
-			CPUTime:       solutionex.Result.CPUTime,
-			MemoryUsed:    totalMemoryUsed,
-			ErrorMessage:  solutionex.Result.ErrorMessage,
-			CreatedAt:     solutionex.Result.CreatedAt,
-			CompletedAt:   solutionex.Result.CompletedAt,
-		},
-	}
-
-	updateSolution, err := c.solutionService.UpdateSolutionFromExecution(aggregatedResult, createdSolution.ID)
+	err = c.solutionService.UpdateSolutionStatus(createdSolution.ID, overallStatus)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": "更新答案結果失敗: " + err.Error(),
+			"error": "更新解答狀態失敗: " + err.Error(),
 		})
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, updateSolution)
-}
-
-// UpdateSolutionResult 更新答案結果
-// @Summary 更新答案結果
-// @Description 更新特定答案的評分結果
-// @Tags solutions
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param id path string true "Solution ID"
-// @Param result body object true "Solution Result"
-// @Success 200 {object} map[string]string
-// @Failure 400,404 {object} map[string]string
-// @Router /solutions/{id}/result [put]
-func (c *SolutionController) UpdateSolutionResult(ctx *gin.Context) {
-	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
+	updatedSolution, err := c.solutionService.GetSolutionByID(createdSolution.ID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": "無效的答案ID",
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": "獲取更新後的解答失敗: " + err.Error(),
 		})
 		return
 	}
 
-	var result struct {
-		Status        string `json:"status" binding:"required"`
-		ExecutionTime int    `json:"execution_time"`
-		MemoryUsage   int    `json:"memory_usage"`
-		Score         int    `json:"score"`
-	}
+	// print updatedSolution
+	fmt.Printf("Updated Solution: %+v\n", updatedSolution)
 
-	if err := ctx.ShouldBindJSON(&result); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	err = c.solutionService.UpdateSolutionResult(
-		uint(id),
-		result.Status,
-		result.ExecutionTime,
-		result.MemoryUsage,
-		result.Score,
-	)
-
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "答案結果更新成功",
-	})
+	ctx.JSON(http.StatusCreated, updatedSolution)
 }
 
 // DeleteSolution 刪除答案

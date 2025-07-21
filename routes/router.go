@@ -18,6 +18,7 @@ func SetupRouter(g *gin.Engine, db *gorm.DB, controllers boot.Controllers) {
 	SetupSchoolRoutes(api, controllers.SchoolController)
 	SetupSocialRoutes(api, controllers.SocialController)
 	SetupSolutionRoutes(api, controllers.SolutionController)
+	SetupSolutionTaskRoutes(g, controllers.SolutionTaskController)
 	SetupSubmitEffectRoutes(api, controllers.SubmitEffectController)
 	SetupUserProfileRoutes(api, controllers.UserProfileController)
 	SetupUserRoutes(api, controllers.UserController, controllers.JudgeController, controllers.SolutionController)

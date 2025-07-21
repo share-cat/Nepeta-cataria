@@ -18,7 +18,6 @@ func SetupSolutionRoutes(router *gin.RouterGroup, solutionController *controller
 	protectedSolutions := router.Group("/solutions", middleware.JwtAuth())
 	{
 		protectedSolutions.POST("", solutionController.SubmitSolution)
-		protectedSolutions.PUT("/:id/result", solutionController.UpdateSolutionResult)
 		protectedSolutions.DELETE("/:id", solutionController.DeleteSolution)
 	}
 }

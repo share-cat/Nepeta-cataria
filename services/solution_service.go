@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"share-cat/Nepeta-cataria/models"
-	"share-cat/Nepeta-cataria/pkg/catwheel"
 	"share-cat/Nepeta-cataria/repositories"
 )
 
@@ -89,38 +88,14 @@ func (s *SolutionService) SubmitSolution(solution models.Solution) (models.Solut
 	}
 
 	solution.SubmittedAt = time.Now()
-
 	solution.Status = "pending"
-
-	solution.ExecutionTime = 0
-	solution.MemoryUsage = 0
-	solution.Score = 0
 
 	return s.repo.Create(solution)
 }
 
-func (s *SolutionService) UpdateSolutionFromExecution(result catwheel.ExecuteResponse, solutionID uint) (models.Solution, error) {
-	solution, err := s.repo.GetByID(solutionID)
-	if err != nil {
-		return models.Solution{}, errors.New("答案不存在")
-	}
-
-	solution.Status = result.Result.Status
-	solution.ExecutionTime = int(result.Result.ExecutionTime)
-	solution.MemoryUsage = int(result.Result.MemoryUsed)
-
-	err = s.repo.Update(solution)
-	if err != nil {
-		return models.Solution{}, err
-	}
-
-	return solution, nil
-}
-
-// UpdateSolutionResult 更新答案評分結果
-func (s *SolutionService) UpdateSolutionResult(id uint, status string, executionTime, memoryUsage, score int) error {
-
-	_, err := s.repo.GetByID(id)
+// UpdateSolutionStatus 更新解答狀態
+func (s *SolutionService) UpdateSolutionStatus(solutionID uint, status string) error {
+	_, err := s.repo.GetByID(solutionID)
 	if err != nil {
 		return errors.New("答案不存在")
 	}
@@ -134,13 +109,15 @@ func (s *SolutionService) UpdateSolutionResult(id uint, status string, execution
 		"memory_limit_exceeded": true,
 		"compilation_error":     true,
 		"runtime_error":         true,
+		"partial_accepted":      true,
+		"success":               true,
 	}
 
 	if !validStatus[status] {
 		return errors.New("無效的狀態")
 	}
 
-	return s.repo.UpdateStatus(id, status, executionTime, memoryUsage, score)
+	return s.repo.UpdateSolutionStatus(solutionID, status)
 }
 
 // DeleteSolution 刪除答案
