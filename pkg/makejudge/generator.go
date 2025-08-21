@@ -41,32 +41,17 @@ func GenerateMainSolutionFile(problemDir, targetLang string, config loadjudge.Pr
 	td.SampleInput = sampleInput
 	td.SampleOutput = sampleOutput
 
-	// 嘗試從 testdata.yaml 載入類型信息
-	testData, testDataErr := loadjudge.LoadTestDataConfig(problemDir)
-	var inputType, outputType *loadjudge.TypeInfo
-
-	if testDataErr == nil {
-		log.Printf("Using type information from testdata.yaml")
-		inputType, outputType, err = loadjudge.ParseTestDataTypes(testData)
-		if err != nil {
-			log.Printf("Warning: Failed to parse types from testdata.yaml: %v", err)
-			log.Printf("Falling back to type inference from sample data")
-		} else {
-			td.InputType = inputType
-			td.OutputType = outputType
-		}
-	}
-
-	var generatedCode string
-	err = fillTemplateDataWithTypes(&td, targetLang, td.InputType, td.OutputType)
+	testData, err := loadjudge.LoadTestDataConfig(problemDir)
 	if err != nil {
-		return "", fmt.Errorf("failed to fill template data with types: %w", err)
+		return "", fmt.Errorf("failed to load testdata.yaml: %w", err)
 	}
 
-	generatedCode, err = executeCodeTemplateWithTypes(targetLang, td)
+	log.Printf("Using type information from testdata.yaml")
+	generatedCode, err := executeCodeTemplateWithTypes(targetLang, td, &testData)
 	if err != nil {
-		return "", fmt.Errorf("failed to generate code from enhanced template for %s: %w", targetLang, err)
+		return "", fmt.Errorf("failed to generate code from template for %s: %w", targetLang, err)
 	}
+
 	var mainFileName string
 	switch targetLang {
 	case string(language.LanguageTypePython):
@@ -138,13 +123,14 @@ func generateSettingData(problemDir string, config loadjudge.ProblemConfig) (Set
 
 		settingData.TestCases = testData.TestCases
 
-		// 處理 InputFormat - 現在是數組，取第一個元素
-		if len(testData.TestConfig.InputFormat) > 0 {
-			settingData.InputFormat = struct {
+		for _, format := range testData.TestConfig.InputFormat {
+			settingData.InputFormat = append(settingData.InputFormat, struct {
+				Name string `json:"name"`
 				Type string `json:"type"`
 			}{
-				Type: testData.TestConfig.InputFormat[0].Type,
-			}
+				Name: format.Name,
+				Type: format.Type,
+			})
 		}
 
 		settingData.OutputFormat = struct {

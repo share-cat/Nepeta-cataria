@@ -22,7 +22,8 @@ type SettingData struct {
 	CheckerLanguage    string               `json:"checkerLanguage,omitempty"`
 	CheckType          string               `json:"checkType,omitempty"`
 	TestCases          []loadjudge.TestCase `json:"testCases,omitempty"`
-	InputFormat        struct {
+	InputFormat        []struct {
+		Name string `json:"name"`
 		Type string `json:"type"`
 	} `json:"inputFormat,omitempty"`
 	OutputFormat struct {

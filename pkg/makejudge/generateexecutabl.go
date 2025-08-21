@@ -18,8 +18,13 @@ from typing import Any, List, Dict
 def run_single_test():
     test_case = {{.TestData}}
     try:
-        input_data = json.loads(test_case["input"])
-        result = main(input_data)
+        input_data = test_case["input"]
+        args = []
+        for item in input_data:
+            for key, value in item.items():
+                args.append(value)
+
+        result = main(*args)
         if isinstance(result, str):
             print(result)
         else:
@@ -45,16 +50,17 @@ using namespace std;
 
 int main() {
     json test_case = R"({{.TestData}})"_json;
-    
+
     try {
-        auto input_data = json::parse(test_case["input"].get<string>());
-        auto result = solve(input_data);
+        auto input_data = test_case["input"];
+        {{.ParameterExtraction}}
+        auto result = solve({{.ParameterList}});
         cout << result << endl;
     } catch (const exception& e) {
         cerr << e.what() << endl;
         return 1;
     }
-    
+
     return 0;
 }
 `
@@ -65,11 +71,18 @@ const jsExecutableTemplate = `{{.Import}}
 
 function runSingleTest() {
     const testCase = {{.TestData}};
-    
+
     try {
-        const inputData = JSON.parse(testCase.input);
-        const result = main(inputData);
-        
+        const inputData = testCase.input;
+        const args = [];
+        for (const item of inputData) {
+            for (const key in item) {
+                args.push(item[key]);
+            }
+        }
+
+        const result = main(...args);
+
         if (typeof result === 'string') {
             console.log(result);
         } else {
@@ -90,10 +103,17 @@ func GenerateExecutableCodeWithSettingData(testData SettingData, testCase loadju
 		return "", fmt.Errorf("序列化失敗: %w", err)
 	}
 
-	var inputType, outputType *loadjudge.TypeInfo
-	inputType, outputType, err = loadjudge.ParseTestDataTypesString(testData.InputFormat.Type, testData.OutputFormat.Type)
+	if len(testData.InputFormat) == 0 {
+		return "", fmt.Errorf("至少需要一個輸入格式")
+	}
+
+	if testData.OutputFormat.Type == "" {
+		return "", fmt.Errorf("需要輸出格式類型")
+	}
+
+	outputType, err := loadjudge.ParseType(testData.OutputFormat.Type)
 	if err != nil {
-		fmt.Printf("無法解析類型資訊: %v\n", err)
+		return "", fmt.Errorf("無法解析輸出類型: %w", err)
 	}
 
 	var template string
@@ -107,10 +127,14 @@ func GenerateExecutableCodeWithSettingData(testData SettingData, testCase loadju
 	switch langType {
 	case langtype.LanguageTypePython:
 		template = pythonExecutableTemplate
-		imports = generateImportsForPython(inputType, outputType)
+		imports = generateImportsForPython(testData.InputFormat, outputType, string(langtype.LanguageTypePython))
 	case langtype.LanguageTypeCPP:
 		template = cppExecutableTemplate
-		imports = generateIncludesForCpp(inputType, outputType)
+		imports = generateIncludesForCpp(testData.InputFormat, outputType, string(langtype.LanguageTypeCPP))
+
+		paramExtraction, paramList := generateCppParameterHandling(testData.InputFormat)
+		template = strings.ReplaceAll(template, "{{.ParameterExtraction}}", paramExtraction)
+		template = strings.ReplaceAll(template, "{{.ParameterList}}", paramList)
 	case langtype.LanguageTypeJavaScript:
 		template = jsExecutableTemplate
 		imports = ""
@@ -131,10 +155,17 @@ func GenerateExecutableCodeWithTestData(testData loadjudge.TestDataConfig, testC
 		return "", fmt.Errorf("序列化失敗: %w", err)
 	}
 
-	var inputType, outputType *loadjudge.TypeInfo
-	inputType, outputType, err = loadjudge.ParseTestDataTypes(testData)
+	if len(testData.TestConfig.InputFormat) == 0 {
+		return "", fmt.Errorf("至少需要一個輸入格式")
+	}
+
+	if testData.TestConfig.OutputFormat.Type == "" {
+		return "", fmt.Errorf("需要輸出格式類型")
+	}
+
+	outputType, err := loadjudge.ParseType(testData.TestConfig.OutputFormat.Type)
 	if err != nil {
-		fmt.Printf("無法解析類型資訊: %v\n", err)
+		return "", fmt.Errorf("無法解析輸出類型: %w", err)
 	}
 
 	var template string
@@ -145,13 +176,31 @@ func GenerateExecutableCodeWithTestData(testData loadjudge.TestDataConfig, testC
 		return "", fmt.Errorf("不支援的語言: %s", language)
 	}
 
+	var inputFormats []struct {
+		Name string
+		Type string
+	}
+	for _, inputFormat := range testData.TestConfig.InputFormat {
+		inputFormats = append(inputFormats, struct {
+			Name string
+			Type string
+		}{
+			Name: inputFormat.Name,
+			Type: inputFormat.Type,
+		})
+	}
+
 	switch langType {
 	case langtype.LanguageTypePython:
 		template = pythonExecutableTemplate
-		imports = generateImportsForPython(inputType, outputType)
+		imports = generateImportsForPython(inputFormats, outputType, string(langtype.LanguageTypePython))
 	case langtype.LanguageTypeCPP:
 		template = cppExecutableTemplate
-		imports = generateIncludesForCpp(inputType, outputType)
+		imports = generateIncludesForCpp(inputFormats, outputType, string(langtype.LanguageTypeCPP))
+
+		paramExtraction, paramList := generateCppParameterHandling(inputFormats)
+		template = strings.ReplaceAll(template, "{{.ParameterExtraction}}", paramExtraction)
+		template = strings.ReplaceAll(template, "{{.ParameterList}}", paramList)
 	case langtype.LanguageTypeJavaScript:
 		template = jsExecutableTemplate
 		imports = ""
@@ -166,17 +215,40 @@ func GenerateExecutableCodeWithTestData(testData loadjudge.TestDataConfig, testC
 	return code, nil
 }
 
-func generateImportsForPython(inputType, outputType *loadjudge.TypeInfo) string {
+func generateImportsForPython(inputFormats interface{}, outputType *loadjudge.TypeInfo, language string) string {
 	imports := make(map[string]bool)
 
-	if inputType != nil {
-		for _, imp := range inputType.GetRequiredImports(string(langtype.LanguageTypePython)) {
+	var processFormat = func(name, typeStr string) {
+		inputType, err := loadjudge.ParseType(typeStr)
+		if err != nil {
+			return
+		}
+
+		for _, imp := range inputType.GetRequiredImports(language) {
 			imports[imp] = true
 		}
 	}
 
+	switch v := inputFormats.(type) {
+	case []struct {
+		Name string
+		Type string
+	}:
+		for _, inputFormat := range v {
+			processFormat(inputFormat.Name, inputFormat.Type)
+		}
+	case []struct {
+		Name string `json:"name"`
+		Type string `json:"type"`
+	}:
+		for _, inputFormat := range v {
+			processFormat(inputFormat.Name, inputFormat.Type)
+		}
+	}
+
+	// 處理輸出類型的 imports
 	if outputType != nil {
-		for _, imp := range outputType.GetRequiredImports(string(langtype.LanguageTypePython)) {
+		for _, imp := range outputType.GetRequiredImports(language) {
 			imports[imp] = true
 		}
 	}
@@ -189,7 +261,7 @@ func generateImportsForPython(inputType, outputType *loadjudge.TypeInfo) string 
 	return strings.Join(importLines, "\n")
 }
 
-func generateIncludesForCpp(inputType, outputType *loadjudge.TypeInfo) string {
+func generateIncludesForCpp(inputFormats interface{}, outputType *loadjudge.TypeInfo, language string) string {
 	includes := map[string]bool{
 		"#include <iostream>": true,
 		"#include <vector>":   true,
@@ -197,14 +269,36 @@ func generateIncludesForCpp(inputType, outputType *loadjudge.TypeInfo) string {
 		"#include <chrono>":   true,
 	}
 
-	if inputType != nil {
-		for _, inc := range inputType.GetRequiredImports(string(langtype.LanguageTypeCPP)) {
+	var processFormat = func(name, typeStr string) {
+		inputType, err := loadjudge.ParseType(typeStr)
+		if err != nil {
+			return
+		}
+
+		for _, inc := range inputType.GetRequiredImports(language) {
 			includes[fmt.Sprintf("#include %s", inc)] = true
 		}
 	}
 
+	switch v := inputFormats.(type) {
+	case []struct {
+		Name string
+		Type string
+	}:
+		for _, inputFormat := range v {
+			processFormat(inputFormat.Name, inputFormat.Type)
+		}
+	case []struct {
+		Name string `json:"name"`
+		Type string `json:"type"`
+	}:
+		for _, inputFormat := range v {
+			processFormat(inputFormat.Name, inputFormat.Type)
+		}
+	}
+
 	if outputType != nil {
-		for _, inc := range outputType.GetRequiredImports(string(langtype.LanguageTypeCPP)) {
+		for _, inc := range outputType.GetRequiredImports(language) {
 			includes[fmt.Sprintf("#include %s", inc)] = true
 		}
 	}
@@ -215,4 +309,49 @@ func generateIncludesForCpp(inputType, outputType *loadjudge.TypeInfo) string {
 	}
 
 	return strings.Join(includeLines, "\n")
+}
+
+func generateCppParameterHandling(inputFormats interface{}) (string, string) {
+	var extractionLines []string
+	var parameterNames []string
+
+	var processFormat = func(name, typeStr string, index int) {
+		inputType, err := loadjudge.ParseType(typeStr)
+		if err != nil {
+			return
+		}
+
+		cppType, err := inputType.GenerateLanguageType(string(langtype.LanguageTypeCPP))
+		if err != nil {
+			return
+		}
+
+		extractionLines = append(extractionLines, fmt.Sprintf("        auto %s = input_data[%d][\"%s\"].get<%s>();", name, index, name, cppType))
+		parameterNames = append(parameterNames, name)
+	}
+
+	index := 0
+	switch v := inputFormats.(type) {
+	case []struct {
+		Name string
+		Type string
+	}:
+		for _, inputFormat := range v {
+			processFormat(inputFormat.Name, inputFormat.Type, index)
+			index++
+		}
+	case []struct {
+		Name string `json:"name"`
+		Type string `json:"type"`
+	}:
+		for _, inputFormat := range v {
+			processFormat(inputFormat.Name, inputFormat.Type, index)
+			index++
+		}
+	}
+
+	extraction := strings.Join(extractionLines, "\n")
+	paramList := strings.Join(parameterNames, ", ")
+
+	return extraction, paramList
 }

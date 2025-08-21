@@ -31,7 +31,7 @@ const pythonMainTemplateStr = `
 
 {{.FunctionSignature}}
     # {{.UserCodePlaceholder}}
-    
+
     raise NotImplementedError("Please implement the solution in the 'main' function.")
 `
 
@@ -67,20 +67,59 @@ const javascriptMainTemplateStr = `
 
 `
 
-func fillTemplateDataWithTypes(td *TemplateData, language string, inputType, outputType *loadjudge.TypeInfo) error {
+func fillTemplateDataWithTypes(td *TemplateData, language string, testData *loadjudge.TestDataConfig) error {
+	if testData == nil {
+		return fmt.Errorf("testData is required for template generation")
+	}
+
 	td.UserCodePlaceholder = "Replace this with your solution."
 
 	allImports := make(map[string]bool)
 
-	if inputType != nil {
-		imports := inputType.GetRequiredImports(language)
-		for _, imp := range imports {
-			allImports[imp] = true
-		}
+	var outputType *loadjudge.TypeInfo
+	if testData.TestConfig.OutputFormat.Type == "" {
+		return fmt.Errorf("output format type is required in testdata.yaml")
 	}
 
-	if outputType != nil {
-		imports := outputType.GetRequiredImports(language)
+	var err error
+	outputType, err = loadjudge.ParseType(testData.TestConfig.OutputFormat.Type)
+	if err != nil {
+		return fmt.Errorf("failed to parse output type: %w", err)
+	}
+
+	imports := outputType.GetRequiredImports(language)
+	for _, imp := range imports {
+		allImports[imp] = true
+	}
+
+	if len(testData.TestConfig.InputFormat) == 0 {
+		return fmt.Errorf("at least one input format is required in testdata.yaml")
+	}
+
+	var inputFormats []struct {
+		Name string `yaml:"name"`
+		Type string `yaml:"type"`
+	}
+
+	for _, inputFormat := range testData.TestConfig.InputFormat {
+		if inputFormat.Name == "" || inputFormat.Type == "" {
+			return fmt.Errorf("input format must have both name and type")
+		}
+
+		inputFormats = append(inputFormats, struct {
+			Name string `yaml:"name"`
+			Type string `yaml:"type"`
+		}{
+			Name: inputFormat.Name,
+			Type: inputFormat.Type,
+		})
+
+		inputType, err := loadjudge.ParseType(inputFormat.Type)
+		if err != nil {
+			return fmt.Errorf("failed to parse input type '%s' for parameter '%s': %w", inputFormat.Type, inputFormat.Name, err)
+		}
+
+		imports := inputType.GetRequiredImports(language)
 		for _, imp := range imports {
 			allImports[imp] = true
 		}
@@ -90,10 +129,11 @@ func fillTemplateDataWithTypes(td *TemplateData, language string, inputType, out
 	for imp := range allImports {
 		importLines = append(importLines, imp)
 	}
+
 	switch language {
 	case string(langtype.LanguageTypePython):
 		td.RequiredImports = strings.Join(importLines, "\n")
-		err := generatePythonTemplate(td, inputType, outputType)
+		err := generatePythonTemplate(td, inputFormats, outputType)
 		if err != nil {
 			return err
 		}
@@ -111,13 +151,13 @@ func fillTemplateDataWithTypes(td *TemplateData, language string, inputType, out
 		includeLines = append(standardIncludes, includeLines...)
 		td.RequiredIncludes = strings.Join(includeLines, "\n")
 
-		err := generateCppTemplate(td, inputType, outputType)
+		err := generateCppTemplate(td, inputFormats, outputType)
 		if err != nil {
 			return err
 		}
 
 	case string(langtype.LanguageTypeJavaScript):
-		err := generateJavaScriptTemplate(td, inputType, outputType)
+		err := generateJavaScriptTemplate(td, inputFormats, outputType)
 		if err != nil {
 			return err
 		}
@@ -126,90 +166,119 @@ func fillTemplateDataWithTypes(td *TemplateData, language string, inputType, out
 	return nil
 }
 
-func generatePythonTemplate(td *TemplateData, inputType, outputType *loadjudge.TypeInfo) error {
-
-	if inputType != nil {
-		inputParam, err := inputType.GenerateFunctionParameter(string(langtype.LanguageTypePython), "input_data")
-		if err != nil {
-			return fmt.Errorf("failed to generate Python input parameter: %w", err)
-		}
-
-		var outputTypeStr string
-		if outputType != nil {
-			outputTypeStr, err = outputType.GenerateLanguageType(string(langtype.LanguageTypePython))
-			if err != nil {
-				return fmt.Errorf("failed to generate Python output type: %w", err)
-			}
-		} else {
-			outputTypeStr = "str"
-		}
-
-		td.FunctionSignature = fmt.Sprintf("def main(%s) -> %s:", inputParam, outputTypeStr)
-	} else {
-
-		td.FunctionSignature = "def main(input_lines: List[str]) -> str:"
-		if td.RequiredImports == "" {
-			td.RequiredImports = "from typing import List"
-		} else if !strings.Contains(td.RequiredImports, "from typing import List") {
-			td.RequiredImports += "\nfrom typing import List"
-		}
+func generatePythonTemplate(td *TemplateData, inputFormats []struct {
+	Name string `yaml:"name"`
+	Type string `yaml:"type"`
+}, outputType *loadjudge.TypeInfo) error {
+	if len(inputFormats) == 0 {
+		return fmt.Errorf("input formats are required for Python template generation")
 	}
+
+	if outputType == nil {
+		return fmt.Errorf("output type is required for Python template generation")
+	}
+
+	var parameters []string
+
+	// 生成每個輸入參數
+	for _, inputFormat := range inputFormats {
+		inputType, err := loadjudge.ParseType(inputFormat.Type)
+		if err != nil {
+			return fmt.Errorf("failed to parse input type '%s' for parameter '%s': %w", inputFormat.Type, inputFormat.Name, err)
+		}
+
+		inputParam, err := inputType.GenerateFunctionParameter(string(langtype.LanguageTypePython), inputFormat.Name)
+		if err != nil {
+			return fmt.Errorf("failed to generate Python input parameter for '%s': %w", inputFormat.Name, err)
+		}
+		parameters = append(parameters, inputParam)
+	}
+
+	outputTypeStr, err := outputType.GenerateLanguageType(string(langtype.LanguageTypePython))
+	if err != nil {
+		return fmt.Errorf("failed to generate Python output type: %w", err)
+	}
+
+	td.FunctionSignature = fmt.Sprintf("def main(%s) -> %s:", strings.Join(parameters, ", "), outputTypeStr)
 	return nil
 }
 
-func generateCppTemplate(td *TemplateData, inputType, outputType *loadjudge.TypeInfo) error {
-
-	if inputType != nil {
-		inputParam, err := inputType.GenerateFunctionParameter(string(langtype.LanguageTypeCPP), "input_data")
-		if err != nil {
-			return fmt.Errorf("failed to generate C++ input parameter: %w", err)
-		}
-
-		var outputTypeStr string
-		if outputType != nil {
-			outputTypeStr, err = outputType.GenerateLanguageType(string(langtype.LanguageTypeCPP))
-			if err != nil {
-				return fmt.Errorf("failed to generate C++ output type: %w", err)
-			}
-		} else {
-			outputTypeStr = "std::string"
-		}
-
-		td.FunctionSignature = fmt.Sprintf("%s solve(%s) {", outputTypeStr, inputParam)
-	} else {
-
-		td.FunctionSignature = "std::string solve(const std::vector<std::string>& input_lines) {"
+func generateCppTemplate(td *TemplateData, inputFormats []struct {
+	Name string `yaml:"name"`
+	Type string `yaml:"type"`
+}, outputType *loadjudge.TypeInfo) error {
+	if len(inputFormats) == 0 {
+		return fmt.Errorf("input formats are required for C++ template generation")
 	}
+
+	if outputType == nil {
+		return fmt.Errorf("output type is required for C++ template generation")
+	}
+
+	var parameters []string
+
+	for _, inputFormat := range inputFormats {
+		inputType, err := loadjudge.ParseType(inputFormat.Type)
+		if err != nil {
+			return fmt.Errorf("failed to parse input type '%s' for parameter '%s': %w", inputFormat.Type, inputFormat.Name, err)
+		}
+
+		inputParam, err := inputType.GenerateFunctionParameter(string(langtype.LanguageTypeCPP), inputFormat.Name)
+		if err != nil {
+			return fmt.Errorf("failed to generate C++ input parameter for '%s': %w", inputFormat.Name, err)
+		}
+		parameters = append(parameters, inputParam)
+	}
+
+	outputTypeStr, err := outputType.GenerateLanguageType(string(langtype.LanguageTypeCPP))
+	if err != nil {
+		return fmt.Errorf("failed to generate C++ output type: %w", err)
+	}
+
+	td.FunctionSignature = fmt.Sprintf("%s solve(%s) {", outputTypeStr, strings.Join(parameters, ", "))
 	return nil
 }
 
-func generateJavaScriptTemplate(td *TemplateData, inputType, outputType *loadjudge.TypeInfo) error {
+func generateJavaScriptTemplate(td *TemplateData, inputFormats []struct {
+	Name string `yaml:"name"`
+	Type string `yaml:"type"`
+}, outputType *loadjudge.TypeInfo) error {
+	if len(inputFormats) == 0 {
+		return fmt.Errorf("input formats are required for JavaScript template generation")
+	}
 
-	if inputType != nil {
+	if outputType == nil {
+		return fmt.Errorf("output type is required for JavaScript template generation")
+	}
+
+	var parameterNames []string
+	var parameterComments []string
+
+	for _, inputFormat := range inputFormats {
+		parameterNames = append(parameterNames, inputFormat.Name)
+
+		inputType, err := loadjudge.ParseType(inputFormat.Type)
+		if err != nil {
+			return fmt.Errorf("failed to parse input type '%s' for parameter '%s': %w", inputFormat.Type, inputFormat.Name, err)
+		}
+
 		inputTypeStr, err := inputType.GenerateLanguageType(string(langtype.LanguageTypeJavaScript))
 		if err != nil {
-			return fmt.Errorf("failed to generate JavaScript input type: %w", err)
+			return fmt.Errorf("failed to generate JavaScript input type for '%s': %w", inputFormat.Name, err)
 		}
+		parameterComments = append(parameterComments, fmt.Sprintf(" * @param {%s} %s", inputTypeStr, inputFormat.Name))
+	}
 
-		var outputTypeStr string
-		if outputType != nil {
-			outputTypeStr, err = outputType.GenerateLanguageType(string(langtype.LanguageTypeJavaScript))
-			if err != nil {
-				return fmt.Errorf("failed to generate JavaScript output type: %w", err)
-			}
-		} else {
-			outputTypeStr = "string"
-		}
+	outputTypeStr, err := outputType.GenerateLanguageType(string(langtype.LanguageTypeJavaScript))
+	if err != nil {
+		return fmt.Errorf("failed to generate JavaScript output type: %w", err)
+	}
 
-		td.FunctionSignature = fmt.Sprintf(`/**
- * @param {%s} input_data
+	td.FunctionSignature = fmt.Sprintf(`/**
+%s
  * @returns {%s}
  */
-function main(input_data) {`, inputTypeStr, outputTypeStr)
-	} else {
-
-		td.FunctionSignature = "function main(input_lines) {"
-	}
+function main(%s) {`, strings.Join(parameterComments, "\n"), outputTypeStr, strings.Join(parameterNames, ", "))
 	return nil
 }
 
@@ -230,7 +299,12 @@ func getTemplate(language string) (*template.Template, error) {
 	return template.New(templateName).Funcs(funcMap).Parse(tplStr)
 }
 
-func executeCodeTemplateWithTypes(language string, data TemplateData) (string, error) {
+func executeCodeTemplateWithTypes(language string, data TemplateData, testData *loadjudge.TestDataConfig) (string, error) {
+	err := fillTemplateDataWithTypes(&data, language, testData)
+	if err != nil {
+		return "", fmt.Errorf("failed to fill template data: %w", err)
+	}
+
 	tmpl, err := getTemplate(language)
 	if err != nil {
 		return "", err

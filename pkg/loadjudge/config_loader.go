@@ -61,11 +61,12 @@ func LoadProblemConfig(problemDir string) (ProblemConfig, error) {
 
 	if config.Checker.File != "" && config.Checker.Language == "" {
 		ext := strings.ToLower(filepath.Ext(config.Checker.File))
-		if ext == ".py" {
+		switch ext {
+		case ".py":
 			config.Checker.Language = string(language.LanguageTypePython)
-		} else if ext == ".cpp" || ext == ".cc" {
+		case ".cpp", ".cc":
 			config.Checker.Language = string(language.LanguageTypeCPP)
-		} else {
+		default:
 			log.Printf("Warning: Checker language for '%s' not specified and cannot be reliably inferred from extension. Assuming it's executable or Python if script-like.", config.Checker.File)
 		}
 	}
