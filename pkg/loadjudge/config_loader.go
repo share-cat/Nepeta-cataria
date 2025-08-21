@@ -1,6 +1,7 @@
 package loadjudge
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -94,11 +95,15 @@ func LoadTestDataConfig(problemDir string) (TestDataConfig, error) {
 	}
 
 	log.Printf("Successfully loaded test data config with %d test cases", len(testData.TestCases))
-	testData.Sample.Input = strings.TrimSuffix(testData.Sample.Input, "\n")
-	testData.Sample.Output = strings.TrimSuffix(testData.Sample.Output, "\n")
+
+	if outputStr, ok := testData.Sample.Output.(string); ok {
+		testData.Sample.Output = strings.TrimSuffix(outputStr, "\n")
+	}
+
 	for i, tc := range testData.TestCases {
-		testData.TestCases[i].Input = strings.TrimSuffix(tc.Input, "\n")
-		testData.TestCases[i].Output = strings.TrimSuffix(tc.Output, "\n")
+		if outputStr, ok := tc.Output.(string); ok {
+			testData.TestCases[i].Output = strings.TrimSuffix(outputStr, "\n")
+		}
 	}
 	return testData, nil
 }
@@ -107,8 +112,28 @@ func GetSampleInputOutput(problemDir string) (string, string, error) {
 	testData, err := LoadTestDataConfig(problemDir)
 	if err != nil {
 		log.Printf("Failed to load testdata.yaml: %v", err)
+		return "", "", err
 	}
 	log.Printf("Using sample data from testdata.yaml")
-	return strings.TrimSpace(testData.Sample.Input), strings.TrimSpace(testData.Sample.Output), nil
 
+	inputBytes, err := json.Marshal(testData.Sample.Input)
+	if err != nil {
+		log.Printf("Failed to marshal sample input: %v", err)
+		return "", "", fmt.Errorf("failed to marshal sample input: %w", err)
+	}
+	inputStr := string(inputBytes)
+
+	var outputStr string
+	if output, ok := testData.Sample.Output.(string); ok {
+		outputStr = strings.TrimSpace(output)
+	} else {
+		outputBytes, err := json.Marshal(testData.Sample.Output)
+		if err != nil {
+			log.Printf("Failed to marshal sample output: %v", err)
+			return "", "", fmt.Errorf("failed to marshal sample output: %w", err)
+		}
+		outputStr = string(outputBytes)
+	}
+
+	return inputStr, outputStr, nil
 }

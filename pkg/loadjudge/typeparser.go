@@ -232,10 +232,12 @@ func ParseTestDataTypesString(Inputstring string, Outputstring string) (inputTyp
 }
 
 func ParseTestDataTypes(testConfig TestDataConfig) (inputType *TypeInfo, outputType *TypeInfo, err error) {
-	if testConfig.TestConfig.InputFormat.Type != "" {
-		inputType, err = ParseType(testConfig.TestConfig.InputFormat.Type)
+	// 返回第一個params的類型, 需要限制輸入相同類型
+	if len(testConfig.TestConfig.InputFormat) > 0 {
+		firstInputType := testConfig.TestConfig.InputFormat[0].Type
+		inputType, err = ParseType(firstInputType)
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to parse input type '%s': %w", testConfig.TestConfig.InputFormat.Type, err)
+			return nil, nil, fmt.Errorf("failed to parse input type '%s': %w", firstInputType, err)
 		}
 	}
 

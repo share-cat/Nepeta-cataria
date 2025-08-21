@@ -29,9 +29,9 @@ type ProblemConfig struct {
 
 type TestDataConfig struct {
 	Sample struct {
-		Input       string `yaml:"input"`
-		Output      string `yaml:"output"`
-		Description string `yaml:"description"`
+		Input       []map[string]interface{} `yaml:"input"`
+		Output      interface{}              `yaml:"output"`
+		Description string                   `yaml:"description"`
 	} `yaml:"sample"`
 
 	TestCases []TestCase `yaml:"cases"`
@@ -41,7 +41,8 @@ type TestDataConfig struct {
 		TimeLimitPerCase   string `yaml:"time_limit_per_case"`
 		MemoryLimitPerCase string `yaml:"memory_limit_per_case"`
 
-		InputFormat struct {
+		InputFormat []struct {
+			Name string `yaml:"name"`
 			Type string `yaml:"type"`
 		} `yaml:"input_format"`
 
@@ -52,8 +53,8 @@ type TestDataConfig struct {
 }
 
 type TestCase struct {
-	Name   string `yaml:"name" json:"name"`
-	Input  string `yaml:"input" json:"input"`
-	Output string `yaml:"output" json:"output"`
-	Points int    `yaml:"points" json:"points"`
+	Name   string                   `yaml:"name" json:"name"`
+	Input  []map[string]interface{} `yaml:"input" json:"input"`
+	Output interface{}              `yaml:"output" json:"output"`
+	Points int                      `yaml:"points" json:"points"`
 }

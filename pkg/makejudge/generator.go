@@ -119,14 +119,32 @@ func generateSettingData(problemDir string, config loadjudge.ProblemConfig) (Set
 	testData, err := loadjudge.LoadTestDataConfig(problemDir)
 	if err == nil {
 		log.Printf("Using test data from testdata.yaml for display")
-		settingData.SampleInput = strings.TrimSpace(testData.Sample.Input)
-		settingData.SampleOutput = strings.TrimSpace(testData.Sample.Output)
+
+		// 將 Sample Input 轉換為 JSON 字符串
+		if inputBytes, marshalErr := json.Marshal(testData.Sample.Input); marshalErr == nil {
+			settingData.SampleInput = strings.TrimSpace(string(inputBytes))
+		} else {
+			settingData.SampleInput = "(Failed to marshal sample input)"
+		}
+
+		// 處理 Sample Output
+		if outputStr, ok := testData.Sample.Output.(string); ok {
+			settingData.SampleOutput = strings.TrimSpace(outputStr)
+		} else if outputBytes, marshalErr := json.Marshal(testData.Sample.Output); marshalErr == nil {
+			settingData.SampleOutput = strings.TrimSpace(string(outputBytes))
+		} else {
+			settingData.SampleOutput = "(Failed to marshal sample output)"
+		}
+
 		settingData.TestCases = testData.TestCases
 
-		settingData.InputFormat = struct {
-			Type string `json:"type"`
-		}{
-			Type: testData.TestConfig.InputFormat.Type,
+		// 處理 InputFormat - 現在是數組，取第一個元素
+		if len(testData.TestConfig.InputFormat) > 0 {
+			settingData.InputFormat = struct {
+				Type string `json:"type"`
+			}{
+				Type: testData.TestConfig.InputFormat[0].Type,
+			}
 		}
 
 		settingData.OutputFormat = struct {
