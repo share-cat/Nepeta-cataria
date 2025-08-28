@@ -85,6 +85,17 @@ type School struct {
 	UserProfiles []UserProfile `json:"user_profiles,omitempty" gorm:"foreignKey:SchoolID"`
 }
 
+type Lesson struct {
+	gorm.Model
+
+	Name        string `json:"name" gorm:"type:varchar(255);not null"`
+	Description string `json:"description" gorm:"type:text"`
+	TeacherId   int    `json:"teacher_id" gorm:"not null;index"`
+
+	Teacher  User   `json:"teacher,omitempty" gorm:"foreignKey:TeacherId"`
+	Students []User `json:"students,omitempty" gorm:"many2many:user_lessons"`
+}
+
 type Social struct {
 	gorm.Model
 
@@ -166,6 +177,7 @@ type User struct {
 	ChatSessions  []ChatSession  `json:"chat_sessions,omitempty" gorm:"foreignKey:UserID"`
 	Achievements  []Achievement  `json:"achievements,omitempty" gorm:"many2many:user_achievements"`
 	SubmitEffects []SubmitEffect `json:"submit_effects,omitempty" gorm:"many2many:user_submit_effects"`
+	Lessons       []Lesson       `json:"lessons,omitempty" gorm:"many2many:user_lessons"`
 	RpgProfile    *RpgProfile    `json:"rpg_profile,omitempty" gorm:"foreignKey:UserID"`
 }
 

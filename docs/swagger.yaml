@@ -80,15 +80,13 @@ definitions:
         type: integer
       name:
         type: string
-      rarelevel:
+      rare_level:
         type: integer
       updatedAt:
         type: string
     type: object
   models.ChatSession:
     properties:
-      chatHistory:
-        $ref: '#/definitions/pgtype.JSONB'
       createdAt:
         type: string
       deletedAt:
@@ -97,7 +95,7 @@ definitions:
         type: integer
       judge:
         $ref: '#/definitions/models.Judge'
-      judgeID:
+      judge_id:
         type: integer
       title:
         type: string
@@ -105,14 +103,14 @@ definitions:
         type: string
       user:
         $ref: '#/definitions/models.User'
-      userID:
+      user_id:
         type: integer
     type: object
   models.Discussion:
     properties:
       author:
         $ref: '#/definitions/models.User'
-      authorID:
+      author_id:
         type: integer
       content:
         type: string
@@ -122,10 +120,10 @@ definitions:
         $ref: '#/definitions/gorm.DeletedAt'
       id:
         type: integer
-      parentID:
+      parent_id:
         description: Parent ID
         type: integer
-      parentType:
+      parent_type:
         description: Parent Type
         type: string
       tags:
@@ -143,17 +141,17 @@ definitions:
     type: object
   models.Judge:
     properties:
-      chatSessions:
+      chat_sessions:
         items:
           $ref: '#/definitions/models.ChatSession'
         type: array
-      checkType:
+      check_type:
         type: string
       createdAt:
         type: string
       creator:
         $ref: '#/definitions/models.User'
-      creatorID:
+      creator_id:
         type: integer
       deletedAt:
         $ref: '#/definitions/gorm.DeletedAt'
@@ -161,17 +159,15 @@ definitions:
         type: string
       difficulty:
         type: integer
-      fullSetting:
-        $ref: '#/definitions/pgtype.JSONB'
       id:
         type: integer
-      isActive:
+      is_active:
         type: boolean
       langs:
         items:
           type: string
         type: array
-      memoryLimit:
+      memory_limit:
         type: integer
       name:
         type: string
@@ -185,10 +181,33 @@ definitions:
         items:
           type: string
         type: array
-      timeLimit:
+      time_limit:
         type: integer
       type:
         type: string
+      updatedAt:
+        type: string
+    type: object
+  models.Lesson:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      students:
+        items:
+          $ref: '#/definitions/models.User'
+        type: array
+      teacher:
+        $ref: '#/definitions/models.User'
+      teacher_id:
+        type: integer
       updatedAt:
         type: string
     type: object
@@ -200,11 +219,11 @@ definitions:
         $ref: '#/definitions/gorm.DeletedAt'
       id:
         type: integer
-      isAdmin:
+      is_admin:
         type: boolean
-      isStudent:
+      is_student:
         type: boolean
-      isTeacher:
+      is_teacher:
         type: boolean
       updatedAt:
         type: string
@@ -227,7 +246,7 @@ definitions:
         type: integer
       updatedAt:
         type: string
-      userID:
+      user_id:
         type: integer
     type: object
   models.School:
@@ -240,11 +259,11 @@ definitions:
         type: string
       id:
         type: integer
-      schoolName:
+      school_name:
         type: string
       updatedAt:
         type: string
-      userProfiles:
+      user_profiles:
         items:
           $ref: '#/definitions/models.UserProfile'
         type: array
@@ -267,7 +286,7 @@ definitions:
         type: string
       updatedAt:
         type: string
-      userProfile:
+      user_profile:
         $ref: '#/definitions/models.UserProfile'
       web:
         type: string
@@ -284,15 +303,15 @@ definitions:
         type: integer
       judge:
         $ref: '#/definitions/models.Judge'
-      judgeID:
+      judge_id:
         type: integer
       language:
         $ref: '#/definitions/models.SupportLang'
-      languageID:
+      language_id:
         type: integer
       status:
         type: string
-      submittedAt:
+      submitted_at:
         type: string
       tasks:
         items:
@@ -302,7 +321,7 @@ definitions:
         type: string
       user:
         $ref: '#/definitions/models.User'
-      userID:
+      user_id:
         type: integer
     type: object
   models.SolutionTask:
@@ -311,19 +330,19 @@ definitions:
         type: string
       deletedAt:
         $ref: '#/definitions/gorm.DeletedAt'
-      executionTime:
+      execution_time:
         type: integer
-      exitCode:
+      exit_code:
         type: integer
       id:
         type: integer
-      memoryUsage:
+      memory_usage:
         type: integer
       score:
         type: integer
       solution:
         $ref: '#/definitions/models.Solution'
-      solutionID:
+      solution_id:
         type: integer
       status:
         type: string
@@ -331,8 +350,7 @@ definitions:
         type: string
       stdout:
         type: string
-      taskIndex:
-        description: 測試案例的索引
+      task_index:
         type: integer
       updatedAt:
         type: string
@@ -345,7 +363,7 @@ definitions:
         $ref: '#/definitions/gorm.DeletedAt'
       description:
         type: string
-      effectId:
+      effect_id:
         type: string
       icon:
         type: string
@@ -353,32 +371,32 @@ definitions:
         type: integer
       name:
         type: string
-      rarelevel:
+      rare_level:
         type: integer
       updatedAt:
         type: string
-      userSubmitEffects:
+      user_submit_effects:
         items:
           $ref: '#/definitions/models.User'
         type: array
     type: object
   models.SupportLang:
     properties:
-      compileCommand:
+      compile_command:
         type: string
       createdAt:
         type: string
       deletedAt:
         $ref: '#/definitions/gorm.DeletedAt'
-      fileExtension:
+      file_extension:
         type: string
       id:
         type: integer
-      isActive:
+      is_active:
         type: boolean
       name:
         type: string
-      runCommand:
+      run_command:
         type: string
       solutions:
         items:
@@ -395,9 +413,9 @@ definitions:
         items:
           $ref: '#/definitions/models.Achievement'
         type: array
-      avatarUrl:
+      avatar_url:
         type: string
-      chatSessions:
+      chat_sessions:
         items:
           $ref: '#/definitions/models.ChatSession'
         type: array
@@ -417,34 +435,36 @@ definitions:
         items:
           $ref: '#/definitions/models.Judge'
         type: array
-      password:
-        type: string
+      lessons:
+        items:
+          $ref: '#/definitions/models.Lesson'
+        type: array
       permission:
         $ref: '#/definitions/models.Permission'
-      permissionID:
+      permission_id:
         type: integer
-      registerTime:
+      register_time:
         type: string
-      rpgProfile:
+      rpg_profile:
         $ref: '#/definitions/models.RpgProfile'
       solutions:
         items:
           $ref: '#/definitions/models.Solution'
         type: array
-      submitEffects:
+      submit_effects:
         items:
           $ref: '#/definitions/models.SubmitEffect'
         type: array
       updatedAt:
         type: string
-      userProfile:
+      user_profile:
         $ref: '#/definitions/models.UserProfile'
       username:
         type: string
     type: object
   models.UserProfile:
     properties:
-      avatarURL:
+      avatar_url:
         type: string
       createdAt:
         type: string
@@ -454,17 +474,17 @@ definitions:
         type: integer
       school:
         $ref: '#/definitions/models.School'
-      schoolID:
+      school_id:
         type: integer
       social:
         $ref: '#/definitions/models.Social'
-      socialID:
+      social_id:
         type: integer
       updatedAt:
         type: string
       user:
         $ref: '#/definitions/models.User'
-      userID:
+      user_id:
         type: integer
     type: object
   models.UserRegister:
@@ -476,25 +496,6 @@ definitions:
       username:
         type: string
     type: object
-  pgtype.JSONB:
-    properties:
-      bytes:
-        items:
-          type: integer
-        type: array
-      status:
-        $ref: '#/definitions/pgtype.Status'
-    type: object
-  pgtype.Status:
-    enum:
-    - 0
-    - 1
-    - 2
-    type: integer
-    x-enum-varnames:
-    - Undefined
-    - "Null"
-    - Present
   services.LoadJudgeRequest:
     properties:
       creator_id:
@@ -1728,6 +1729,316 @@ paths:
       summary: 根據標籤獲取題目
       tags:
       - judges
+  /lessons:
+    get:
+      consumes:
+      - application/json
+      description: 分頁獲取所有課程列表
+      parameters:
+      - default: 1
+        description: 頁碼
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: 每頁數量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'data: []models.Lesson, total: int, page: int, page_size: int'
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: 'error: 內部伺服器錯誤'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取所有課程
+      tags:
+      - lessons
+    post:
+      consumes:
+      - application/json
+      description: 教師創建新課程
+      parameters:
+      - description: 課程資訊
+        in: body
+        name: lesson
+        required: true
+        schema:
+          $ref: '#/definitions/models.Lesson'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 'data: models.Lesson'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: 'error: 錯誤訊息'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: 'error: unauthorized'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: 創建課程
+      tags:
+      - lessons
+  /lessons/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 刪除課程（僅課程創建者可刪除）
+      parameters:
+      - description: 課程ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'message: lesson deleted successfully'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 'error: 錯誤訊息'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: 'error: unauthorized'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: 刪除課程
+      tags:
+      - lessons
+    get:
+      consumes:
+      - application/json
+      description: 根據課程ID獲取課程詳細資訊
+      parameters:
+      - description: 課程ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'data: models.Lesson'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: 'error: invalid lesson id'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: 'error: 課程不存在'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取課程詳情
+      tags:
+      - lessons
+    put:
+      consumes:
+      - application/json
+      description: 更新課程資訊（僅課程創建者可更新）
+      parameters:
+      - description: 課程ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 課程資訊
+        in: body
+        name: lesson
+        required: true
+        schema:
+          $ref: '#/definitions/models.Lesson'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'data: models.Lesson'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: 'error: 錯誤訊息'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: 'error: unauthorized'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: 更新課程
+      tags:
+      - lessons
+  /lessons/{id}/join:
+    post:
+      consumes:
+      - application/json
+      description: 學生加入指定課程
+      parameters:
+      - description: 課程ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'message: joined lesson successfully'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 'error: 錯誤訊息'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: 'error: unauthorized'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: 學生加入課程
+      tags:
+      - lessons
+  /lessons/{id}/leave:
+    delete:
+      consumes:
+      - application/json
+      description: 學生退出指定課程
+      parameters:
+      - description: 課程ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'message: left lesson successfully'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 'error: 錯誤訊息'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: 'error: unauthorized'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: 學生退出課程
+      tags:
+      - lessons
+  /lessons/student/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 獲取指定學生加入的所有課程
+      parameters:
+      - description: 學生ID
+        in: path
+        name: studentId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'data: []models.Lesson'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: 'error: 錯誤訊息'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取學生課程
+      tags:
+      - lessons
+  /lessons/teacher/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 獲取指定教師的所有課程
+      parameters:
+      - description: 教師ID
+        in: path
+        name: teacherId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'data: []models.Lesson'
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: 'error: 錯誤訊息'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 獲取教師課程
+      tags:
+      - lessons
   /load-judge/directory/{id}:
     get:
       consumes:

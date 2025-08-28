@@ -63,6 +63,7 @@ func dbInit() {
 		&models.ChatSession{},
 		&models.Discussion{},
 		&models.Judge{},
+		&models.Lesson{},
 		&models.Permission{},
 		&models.School{},
 		&models.Social{},

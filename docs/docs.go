@@ -1852,6 +1852,481 @@ const docTemplate = `{
                 }
             }
         },
+        "/lessons": {
+            "get": {
+                "description": "分頁獲取所有課程列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lessons"
+                ],
+                "summary": "獲取所有課程",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "頁碼",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "每頁數量",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "data: []models.Lesson, total: int, page: int, page_size: int",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "error: 內部伺服器錯誤",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "教師創建新課程",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lessons"
+                ],
+                "summary": "創建課程",
+                "parameters": [
+                    {
+                        "description": "課程資訊",
+                        "name": "lesson",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Lesson"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "data: models.Lesson",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "error: 錯誤訊息",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "error: unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/lessons/student/{id}": {
+            "get": {
+                "description": "獲取指定學生加入的所有課程",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lessons"
+                ],
+                "summary": "獲取學生課程",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "學生ID",
+                        "name": "studentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "data: []models.Lesson",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "error: 錯誤訊息",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/lessons/teacher/{id}": {
+            "get": {
+                "description": "獲取指定教師的所有課程",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lessons"
+                ],
+                "summary": "獲取教師課程",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "教師ID",
+                        "name": "teacherId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "data: []models.Lesson",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "error: 錯誤訊息",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/lessons/{id}": {
+            "get": {
+                "description": "根據課程ID獲取課程詳細資訊",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lessons"
+                ],
+                "summary": "獲取課程詳情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "課程ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "data: models.Lesson",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "error: invalid lesson id",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "error: 課程不存在",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "更新課程資訊（僅課程創建者可更新）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lessons"
+                ],
+                "summary": "更新課程",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "課程ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "課程資訊",
+                        "name": "lesson",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Lesson"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "data: models.Lesson",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "error: 錯誤訊息",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "error: unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "刪除課程（僅課程創建者可刪除）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lessons"
+                ],
+                "summary": "刪除課程",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "課程ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "message: lesson deleted successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "error: 錯誤訊息",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "error: unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/lessons/{id}/join": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "學生加入指定課程",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lessons"
+                ],
+                "summary": "學生加入課程",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "課程ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "message: joined lesson successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "error: 錯誤訊息",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "error: unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/lessons/{id}/leave": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "學生退出指定課程",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "lessons"
+                ],
+                "summary": "學生退出課程",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "課程ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "message: left lesson successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "error: 錯誤訊息",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "error: unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/load-judge/directory/{id}": {
             "get": {
                 "description": "根據題目 ID 獲取其在伺服器上的目錄路徑",
@@ -4350,7 +4825,7 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "rarelevel": {
+                "rare_level": {
                     "type": "integer"
                 },
                 "updatedAt": {
@@ -4361,9 +4836,6 @@ const docTemplate = `{
         "models.ChatSession": {
             "type": "object",
             "properties": {
-                "chatHistory": {
-                    "$ref": "#/definitions/pgtype.JSONB"
-                },
                 "createdAt": {
                     "type": "string"
                 },
@@ -4376,7 +4848,7 @@ const docTemplate = `{
                 "judge": {
                     "$ref": "#/definitions/models.Judge"
                 },
-                "judgeID": {
+                "judge_id": {
                     "type": "integer"
                 },
                 "title": {
@@ -4388,7 +4860,7 @@ const docTemplate = `{
                 "user": {
                     "$ref": "#/definitions/models.User"
                 },
-                "userID": {
+                "user_id": {
                     "type": "integer"
                 }
             }
@@ -4399,7 +4871,7 @@ const docTemplate = `{
                 "author": {
                     "$ref": "#/definitions/models.User"
                 },
-                "authorID": {
+                "author_id": {
                     "type": "integer"
                 },
                 "content": {
@@ -4414,11 +4886,11 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "parentID": {
+                "parent_id": {
                     "description": "Parent ID",
                     "type": "integer"
                 },
-                "parentType": {
+                "parent_type": {
                     "description": "Parent Type",
                     "type": "string"
                 },
@@ -4445,13 +4917,13 @@ const docTemplate = `{
         "models.Judge": {
             "type": "object",
             "properties": {
-                "chatSessions": {
+                "chat_sessions": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.ChatSession"
                     }
                 },
-                "checkType": {
+                "check_type": {
                     "type": "string"
                 },
                 "createdAt": {
@@ -4460,7 +4932,7 @@ const docTemplate = `{
                 "creator": {
                     "$ref": "#/definitions/models.User"
                 },
-                "creatorID": {
+                "creator_id": {
                     "type": "integer"
                 },
                 "deletedAt": {
@@ -4472,13 +4944,10 @@ const docTemplate = `{
                 "difficulty": {
                     "type": "integer"
                 },
-                "fullSetting": {
-                    "$ref": "#/definitions/pgtype.JSONB"
-                },
                 "id": {
                     "type": "integer"
                 },
-                "isActive": {
+                "is_active": {
                     "type": "boolean"
                 },
                 "langs": {
@@ -4487,7 +4956,7 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "memoryLimit": {
+                "memory_limit": {
                     "type": "integer"
                 },
                 "name": {
@@ -4508,11 +4977,46 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "timeLimit": {
+                "time_limit": {
                     "type": "integer"
                 },
                 "type": {
                     "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Lesson": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "deletedAt": {
+                    "$ref": "#/definitions/gorm.DeletedAt"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "students": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.User"
+                    }
+                },
+                "teacher": {
+                    "$ref": "#/definitions/models.User"
+                },
+                "teacher_id": {
+                    "type": "integer"
                 },
                 "updatedAt": {
                     "type": "string"
@@ -4531,13 +5035,13 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "isAdmin": {
+                "is_admin": {
                     "type": "boolean"
                 },
-                "isStudent": {
+                "is_student": {
                     "type": "boolean"
                 },
-                "isTeacher": {
+                "is_teacher": {
                     "type": "boolean"
                 },
                 "updatedAt": {
@@ -4572,7 +5076,7 @@ const docTemplate = `{
                 "updatedAt": {
                     "type": "string"
                 },
-                "userID": {
+                "user_id": {
                     "type": "integer"
                 }
             }
@@ -4592,13 +5096,13 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "schoolName": {
+                "school_name": {
                     "type": "string"
                 },
                 "updatedAt": {
                     "type": "string"
                 },
-                "userProfiles": {
+                "user_profiles": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.UserProfile"
@@ -4633,7 +5137,7 @@ const docTemplate = `{
                 "updatedAt": {
                     "type": "string"
                 },
-                "userProfile": {
+                "user_profile": {
                     "$ref": "#/definitions/models.UserProfile"
                 },
                 "web": {
@@ -4659,19 +5163,19 @@ const docTemplate = `{
                 "judge": {
                     "$ref": "#/definitions/models.Judge"
                 },
-                "judgeID": {
+                "judge_id": {
                     "type": "integer"
                 },
                 "language": {
                     "$ref": "#/definitions/models.SupportLang"
                 },
-                "languageID": {
+                "language_id": {
                     "type": "integer"
                 },
                 "status": {
                     "type": "string"
                 },
-                "submittedAt": {
+                "submitted_at": {
                     "type": "string"
                 },
                 "tasks": {
@@ -4686,7 +5190,7 @@ const docTemplate = `{
                 "user": {
                     "$ref": "#/definitions/models.User"
                 },
-                "userID": {
+                "user_id": {
                     "type": "integer"
                 }
             }
@@ -4700,16 +5204,16 @@ const docTemplate = `{
                 "deletedAt": {
                     "$ref": "#/definitions/gorm.DeletedAt"
                 },
-                "executionTime": {
+                "execution_time": {
                     "type": "integer"
                 },
-                "exitCode": {
+                "exit_code": {
                     "type": "integer"
                 },
                 "id": {
                     "type": "integer"
                 },
-                "memoryUsage": {
+                "memory_usage": {
                     "type": "integer"
                 },
                 "score": {
@@ -4718,7 +5222,7 @@ const docTemplate = `{
                 "solution": {
                     "$ref": "#/definitions/models.Solution"
                 },
-                "solutionID": {
+                "solution_id": {
                     "type": "integer"
                 },
                 "status": {
@@ -4730,8 +5234,7 @@ const docTemplate = `{
                 "stdout": {
                     "type": "string"
                 },
-                "taskIndex": {
-                    "description": "測試案例的索引",
+                "task_index": {
                     "type": "integer"
                 },
                 "updatedAt": {
@@ -4751,7 +5254,7 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "effectId": {
+                "effect_id": {
                     "type": "string"
                 },
                 "icon": {
@@ -4763,13 +5266,13 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "rarelevel": {
+                "rare_level": {
                     "type": "integer"
                 },
                 "updatedAt": {
                     "type": "string"
                 },
-                "userSubmitEffects": {
+                "user_submit_effects": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.User"
@@ -4780,7 +5283,7 @@ const docTemplate = `{
         "models.SupportLang": {
             "type": "object",
             "properties": {
-                "compileCommand": {
+                "compile_command": {
                     "type": "string"
                 },
                 "createdAt": {
@@ -4789,19 +5292,19 @@ const docTemplate = `{
                 "deletedAt": {
                     "$ref": "#/definitions/gorm.DeletedAt"
                 },
-                "fileExtension": {
+                "file_extension": {
                     "type": "string"
                 },
                 "id": {
                     "type": "integer"
                 },
-                "isActive": {
+                "is_active": {
                     "type": "boolean"
                 },
                 "name": {
                     "type": "string"
                 },
-                "runCommand": {
+                "run_command": {
                     "type": "string"
                 },
                 "solutions": {
@@ -4827,10 +5330,10 @@ const docTemplate = `{
                         "$ref": "#/definitions/models.Achievement"
                     }
                 },
-                "avatarUrl": {
+                "avatar_url": {
                     "type": "string"
                 },
-                "chatSessions": {
+                "chat_sessions": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.ChatSession"
@@ -4860,19 +5363,22 @@ const docTemplate = `{
                         "$ref": "#/definitions/models.Judge"
                     }
                 },
-                "password": {
-                    "type": "string"
+                "lessons": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Lesson"
+                    }
                 },
                 "permission": {
                     "$ref": "#/definitions/models.Permission"
                 },
-                "permissionID": {
+                "permission_id": {
                     "type": "integer"
                 },
-                "registerTime": {
+                "register_time": {
                     "type": "string"
                 },
-                "rpgProfile": {
+                "rpg_profile": {
                     "$ref": "#/definitions/models.RpgProfile"
                 },
                 "solutions": {
@@ -4881,7 +5387,7 @@ const docTemplate = `{
                         "$ref": "#/definitions/models.Solution"
                     }
                 },
-                "submitEffects": {
+                "submit_effects": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.SubmitEffect"
@@ -4890,7 +5396,7 @@ const docTemplate = `{
                 "updatedAt": {
                     "type": "string"
                 },
-                "userProfile": {
+                "user_profile": {
                     "$ref": "#/definitions/models.UserProfile"
                 },
                 "username": {
@@ -4901,7 +5407,7 @@ const docTemplate = `{
         "models.UserProfile": {
             "type": "object",
             "properties": {
-                "avatarURL": {
+                "avatar_url": {
                     "type": "string"
                 },
                 "createdAt": {
@@ -4916,13 +5422,13 @@ const docTemplate = `{
                 "school": {
                     "$ref": "#/definitions/models.School"
                 },
-                "schoolID": {
+                "school_id": {
                     "type": "integer"
                 },
                 "social": {
                     "$ref": "#/definitions/models.Social"
                 },
-                "socialID": {
+                "social_id": {
                     "type": "integer"
                 },
                 "updatedAt": {
@@ -4931,7 +5437,7 @@ const docTemplate = `{
                 "user": {
                     "$ref": "#/definitions/models.User"
                 },
-                "userID": {
+                "user_id": {
                     "type": "integer"
                 }
             }
@@ -4949,33 +5455,6 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
-        },
-        "pgtype.JSONB": {
-            "type": "object",
-            "properties": {
-                "bytes": {
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "status": {
-                    "$ref": "#/definitions/pgtype.Status"
-                }
-            }
-        },
-        "pgtype.Status": {
-            "type": "integer",
-            "enum": [
-                0,
-                1,
-                2
-            ],
-            "x-enum-varnames": [
-                "Undefined",
-                "Null",
-                "Present"
-            ]
         },
         "services.LoadJudgeRequest": {
             "type": "object",
