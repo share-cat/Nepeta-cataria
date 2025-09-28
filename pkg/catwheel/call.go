@@ -240,7 +240,7 @@ func (s *SystemInfo) GetAvailableRuntimes() []string {
 }
 
 func (r *ExecutionResult) GetStdout() string {
-	return strings.TrimSuffix(r.Stdout, "\n")
+	return strings.TrimSpace(r.Stdout)
 }
 
 func (r *ExecutionResult) IsSuccess() bool {

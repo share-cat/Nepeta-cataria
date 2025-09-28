@@ -2327,6 +2327,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/load-judge/directory": {
+            "post": {
+                "description": "從judges目錄下的指定資料夾載入題目配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "loadjudge"
+                ],
+                "summary": "從judges目錄載入題目",
+                "parameters": [
+                    {
+                        "description": "Load judge from directory request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/services.LoadJudgeFromDirectoryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/services.LoadJudgeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/load-judge/directory/{id}": {
             "get": {
                 "description": "根據題目 ID 獲取其在伺服器上的目錄路徑",
@@ -2427,6 +2479,39 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/load-judge/list-directories": {
+            "get": {
+                "description": "列出judges目錄下所有包含config.yaml的資料夾",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "loadjudge"
+                ],
+                "summary": "列出可用的judges目錄",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -5453,6 +5538,21 @@ const docTemplate = `{
                 },
                 "username": {
                     "type": "string"
+                }
+            }
+        },
+        "services.LoadJudgeFromDirectoryRequest": {
+            "type": "object",
+            "properties": {
+                "creator_id": {
+                    "type": "integer"
+                },
+                "directory_name": {
+                    "description": "judges目錄下的資料夾名稱",
+                    "type": "string"
+                },
+                "force_update": {
+                    "type": "boolean"
                 }
             }
         },

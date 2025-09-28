@@ -43,6 +43,12 @@ type LoadJudgeRequest struct {
 	ForceUpdate bool   `json:"force_update,omitempty"`
 }
 
+type LoadJudgeFromDirectoryRequest struct {
+	DirectoryName string `json:"directory_name"`
+	CreatorID     int    `json:"creator_id"`
+	ForceUpdate   bool   `json:"force_update,omitempty"`
+}
+
 type LoadJudgeResponse struct {
 	JudgeID       uint   `json:"judge_id"`
 	Name          string `json:"name"`
@@ -117,6 +123,11 @@ func (s *LoadJudgeService) LoadJudge(request LoadJudgeRequest) (*LoadJudgeRespon
 		return nil, fmt.Errorf("解壓縮檔案失敗: %w", err)
 	}
 
+	if err := s.normalizeExtractedDirectory(judgeDir); err != nil {
+		log.Printf("警告: 正規化目錄結構失敗: %v", err)
+
+	}
+
 	config, configDir, err := s.loadProblemConfig(judgeDir)
 	if err != nil {
 		os.RemoveAll(judgeDir)
@@ -173,6 +184,91 @@ func (s *LoadJudgeService) LoadJudge(request LoadJudgeRequest) (*LoadJudgeRespon
 	}
 
 	log.Printf("評判題目載入成功: ID=%d, Name=%s, Path=%s", judge.ID, judge.Name, configDir)
+	return response, nil
+}
+
+func (s *LoadJudgeService) LoadJudgeFromDirectory(request LoadJudgeFromDirectoryRequest) (*LoadJudgeResponse, error) {
+	log.Printf("開始從目錄載入評判題目: %s", request.DirectoryName)
+
+	if request.DirectoryName == "" {
+		return nil, fmt.Errorf("目錄名稱不能為空")
+	}
+
+	judgeDir := filepath.Join(s.judgesBaseDir, request.DirectoryName)
+
+	if _, err := os.Stat(judgeDir); os.IsNotExist(err) {
+		return nil, fmt.Errorf("指定的目錄不存在: %s", request.DirectoryName)
+	}
+
+	config, configDir, err := s.loadProblemConfig(judgeDir)
+	if err != nil {
+		return nil, fmt.Errorf("載入問題配置失敗: %w", err)
+	}
+
+	existingJudge, isDuplicate := s.checkDuplicateJudge(config, request.CreatorID)
+
+	if isDuplicate && !request.ForceUpdate {
+		return &LoadJudgeResponse{
+			JudgeID:    0,
+			Name:       config.Name,
+			Success:    false,
+			Message:    fmt.Sprintf("題目 '%s' 已存在。如需更新，請設定 force_update=true", config.Name),
+			IsUpdate:   false,
+			ExistingID: existingJudge.ID,
+		}, nil
+	}
+
+	for _, lang := range config.Languages {
+		langType, err := language.StringToLanguageType(lang)
+		if err != nil {
+			log.Printf("警告: 不支援的語言 '%s'，將被忽略: %v", lang, err)
+			continue
+		}
+		langStr := string(langType)
+		switch langType {
+		case language.LanguageTypePython:
+			makejudge.GenerateMainSolutionFile(configDir, langStr, config)
+		case language.LanguageTypeCPP:
+			makejudge.GenerateMainSolutionFile(configDir, langStr, config)
+		case language.LanguageTypeJavaScript:
+			makejudge.GenerateMainSolutionFile(configDir, langStr, config)
+		default:
+			log.Printf("警告: 語言 '%s' 尚未實作程式碼範本生成", lang)
+			continue
+		}
+	}
+
+	var judge *models.Judge
+	var isUpdate bool
+	if isDuplicate && request.ForceUpdate {
+		isUpdate = true
+		judge, err = s.updateJudgeRecord(existingJudge, config, configDir)
+		if err != nil {
+			return nil, fmt.Errorf("更新資料庫記錄失敗: %w", err)
+		}
+	} else {
+		judge, err = s.createJudgeRecord(config, request.CreatorID, configDir)
+		if err != nil {
+			return nil, fmt.Errorf("創建資料庫記錄失敗: %w", err)
+		}
+	}
+
+	message := "評判題目從目錄載入成功"
+	if isUpdate {
+		message = "評判題目從目錄更新成功"
+	}
+
+	response := &LoadJudgeResponse{
+		JudgeID:       judge.ID,
+		Name:          judge.Name,
+		Description:   judge.Description,
+		PermanentPath: configDir,
+		Success:       true,
+		Message:       message,
+		IsUpdate:      isUpdate,
+	}
+
+	log.Printf("評判題目從目錄載入成功: ID=%d, Name=%s, Path=%s", judge.ID, judge.Name, configDir)
 	return response, nil
 }
 
@@ -293,6 +389,66 @@ func (s *LoadJudgeService) ensureUniqueJudgeDir(baseDir string) string {
 		baseDir = fmt.Sprintf("%s_%d", originalDir, counter)
 		counter++
 	}
+}
+
+func (s *LoadJudgeService) normalizeExtractedDirectory(extractDir string) error {
+	entries, err := os.ReadDir(extractDir)
+	if err != nil {
+		return fmt.Errorf("讀取解壓目錄失敗: %w", err)
+	}
+
+	var dirs []os.DirEntry
+	var files []os.DirEntry
+	for _, entry := range entries {
+		if strings.HasPrefix(entry.Name(), ".") {
+			continue
+		}
+		if entry.IsDir() {
+			dirs = append(dirs, entry)
+		} else {
+			files = append(files, entry)
+		}
+	}
+
+	if len(dirs) != 1 || len(files) > 0 {
+		return nil
+	}
+
+	subDirName := dirs[0].Name()
+	subDirPath := filepath.Join(extractDir, subDirName)
+
+	configPath := filepath.Join(subDirPath, "config.yaml")
+	if !loadjudge.FileExists(configPath) {
+		return nil
+	}
+
+	tempDir := subDirPath + "_temp"
+	if err := os.Rename(subDirPath, tempDir); err != nil {
+		return fmt.Errorf("重命名子目錄失敗: %w", err)
+	}
+
+	tempEntries, err := os.ReadDir(tempDir)
+	if err != nil {
+		os.Rename(tempDir, subDirPath)
+		return fmt.Errorf("讀取臨時目錄失敗: %w", err)
+	}
+
+	for _, entry := range tempEntries {
+		srcPath := filepath.Join(tempDir, entry.Name())
+		destPath := filepath.Join(extractDir, entry.Name())
+
+		if err := os.Rename(srcPath, destPath); err != nil {
+			log.Printf("警告: 移動項目 %s 失敗: %v", entry.Name(), err)
+			os.Rename(tempDir, subDirPath)
+			return fmt.Errorf("移動目錄內容失敗: %w", err)
+		}
+	}
+
+	if err := os.Remove(tempDir); err != nil {
+		log.Printf("警告: 刪除臨時目錄失敗: %v", err)
+	}
+
+	return nil
 }
 
 func (s *LoadJudgeService) extractZipFile(zipPath, destDir string) error {
@@ -504,4 +660,24 @@ func (s *LoadJudgeService) GetJudgeDirectory(judgeID uint) (string, error) {
 
 func (s *LoadJudgeService) GetJudgesBaseDir() string {
 	return s.judgesBaseDir
+}
+
+func (s *LoadJudgeService) ListAvailableJudgeDirectories() ([]string, error) {
+	entries, err := os.ReadDir(s.judgesBaseDir)
+	if err != nil {
+		return nil, fmt.Errorf("讀取judges目錄失敗: %w", err)
+	}
+
+	var directories []string
+	for _, entry := range entries {
+		if entry.IsDir() && !strings.HasPrefix(entry.Name(), ".") {
+			// 檢查是否包含config.yaml檔案
+			configPath := filepath.Join(s.judgesBaseDir, entry.Name(), "config.yaml")
+			if loadjudge.FileExists(configPath) {
+				directories = append(directories, entry.Name())
+			}
+		}
+	}
+
+	return directories, nil
 }

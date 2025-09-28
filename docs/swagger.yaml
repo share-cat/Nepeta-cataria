@@ -496,6 +496,16 @@ definitions:
       username:
         type: string
     type: object
+  services.LoadJudgeFromDirectoryRequest:
+    properties:
+      creator_id:
+        type: integer
+      directory_name:
+        description: judges目錄下的資料夾名稱
+        type: string
+      force_update:
+        type: boolean
+    type: object
   services.LoadJudgeRequest:
     properties:
       creator_id:
@@ -2039,6 +2049,40 @@ paths:
       summary: 獲取教師課程
       tags:
       - lessons
+  /load-judge/directory:
+    post:
+      consumes:
+      - application/json
+      description: 從judges目錄下的指定資料夾載入題目配置
+      parameters:
+      - description: Load judge from directory request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/services.LoadJudgeFromDirectoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/services.LoadJudgeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 從judges目錄載入題目
+      tags:
+      - loadjudge
   /load-judge/directory/{id}:
     get:
       consumes:
@@ -2110,6 +2154,28 @@ paths:
               type: string
             type: object
       summary: 下載題目相關檔案
+      tags:
+      - loadjudge
+  /load-judge/list-directories:
+    get:
+      consumes:
+      - application/json
+      description: 列出judges目錄下所有包含config.yaml的資料夾
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 列出可用的judges目錄
       tags:
       - loadjudge
   /load-judge/path:

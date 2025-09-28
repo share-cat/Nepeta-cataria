@@ -13,7 +13,9 @@ func SetupLoadjudgeRoutes(router *gin.RouterGroup, controller *controllers.LoadJ
 	{
 		protectedSocials.POST("/upload", controller.UploadAndLoadJudge)
 		protectedSocials.POST("/path", controller.LoadJudgeFromPath)
+		protectedSocials.POST("/directory", controller.LoadJudgeFromDirectory)
 		protectedSocials.POST("/validate", controller.ValidateJudgeZip)
+		protectedSocials.GET("/list-directories", controller.ListAvailableDirectories)
 		protectedSocials.GET("/directory/:id", controller.GetJudgeDirectory)
 		protectedSocials.GET("/download/:id", controller.DownloadJudgeFile)
 	}

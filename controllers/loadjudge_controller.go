@@ -173,6 +173,44 @@ func (c *LoadJudgeController) LoadJudgeFromPath(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
+// LoadJudgeFromDirectory 從judges目錄載入題目
+// @Summary 從judges目錄載入題目
+// @Description 從judges目錄下的指定資料夾載入題目配置
+// @Tags loadjudge
+// @Accept json
+// @Produce json
+// @Param request body services.LoadJudgeFromDirectoryRequest true "Load judge from directory request"
+// @Success 200 {object} services.LoadJudgeResponse
+// @Failure 400,500 {object} map[string]string
+// @Router /load-judge/directory [post]
+func (c *LoadJudgeController) LoadJudgeFromDirectory(ctx *gin.Context) {
+	var request services.LoadJudgeFromDirectoryRequest
+
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("請求參數錯誤: %v", err),
+		})
+		return
+	}
+
+	if request.DirectoryName == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "目錄名稱不能為空",
+		})
+		return
+	}
+
+	response, err := c.loadJudgeService.LoadJudgeFromDirectory(request)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": fmt.Sprintf("從目錄載入題目失敗: %v", err),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response)
+}
+
 // ValidateJudgeZip 驗證題目 ZIP 檔案
 // @Summary 驗證題目 ZIP 檔案
 // @Description 驗證上傳的 ZIP 檔案是否符合題目格式
@@ -341,4 +379,28 @@ func (c *LoadJudgeController) DownloadJudgeFile(ctx *gin.Context) {
 
 		ctx.Header("X-Error", "檔案傳輸失敗")
 	}
+}
+
+// ListAvailableDirectories 列出可用的judges目錄
+// @Summary 列出可用的judges目錄
+// @Description 列出judges目錄下所有包含config.yaml的資料夾
+// @Tags loadjudge
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 500 {object} map[string]string
+// @Router /load-judge/list-directories [get]
+func (c *LoadJudgeController) ListAvailableDirectories(ctx *gin.Context) {
+	directories, err := c.loadJudgeService.ListAvailableJudgeDirectories()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": fmt.Sprintf("列出目錄失敗: %v", err),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"directories": directories,
+		"count":       len(directories),
+	})
 }

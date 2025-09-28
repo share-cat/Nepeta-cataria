@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"share-cat/Nepeta-cataria/models"
 	"share-cat/Nepeta-cataria/pkg/catwheel"
@@ -257,7 +258,30 @@ func (c *SolutionController) SubmitSolution(ctx *gin.Context) {
 		fmt.Println("Test Case Output:", solution_res.Result.Stdout)
 		fmt.Println("Expected Output:", testcase.Output)
 
-		if solution_res.Result.GetStdout() != testcase.Output {
+		actualOutput := solution_res.Result.GetStdout()
+		expectedOutput := ""
+
+		switch v := testcase.Output.(type) {
+		case string:
+			expectedOutput = strings.TrimSpace(v)
+		case int:
+			expectedOutput = strings.TrimSpace(fmt.Sprintf("%d", v))
+		case int64:
+			expectedOutput = strings.TrimSpace(fmt.Sprintf("%d", v))
+		case float64:
+			expectedOutput = strings.TrimSpace(fmt.Sprintf("%.0f", v))
+		case float32:
+			expectedOutput = strings.TrimSpace(fmt.Sprintf("%.0f", v))
+		default:
+			expectedOutput = strings.TrimSpace(fmt.Sprintf("%v", v))
+		}
+
+		fmt.Printf("Normalized Actual Output: '%s'\n", actualOutput)
+		fmt.Printf("Normalized Expected Output: '%s'\n", expectedOutput)
+
+		fmt.Printf("is actualOutput == expectedOutput? %v\n", actualOutput == expectedOutput)
+
+		if actualOutput != expectedOutput {
 			overallSuccess = false
 			taskStatus = "WRONG_ANSWER"
 			overallStatus = "wrong_answer"
